@@ -612,6 +612,7 @@
           <p class="text-[11px] text-inkMuted leading-relaxed">貼上現有 <code class="bg-white px-1 rounded">our-ledger-2</code> 的 <code class="bg-white px-1 rounded">firebaseConfig</code> JSON（自動連接既有的 <code class="bg-white px-1 rounded">transactions/</code> 與 <code class="bg-white px-1 rounded">logs/</code> 路徑）：</p>
           <textarea id="firebaseConfigInput" rows="4" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"https://...","projectId":"..."}' class="w-full p-2.5 rounded-xl bg-white border border-cardBorder font-mono text-[11px]"></textarea>
           <button type="button" onclick="saveFirebaseConfig()" class="w-full touch-target rounded-xl bg-capooBlue text-white font-bold">儲存並連線 Firebase</button>
+          <button type="button" id="migrateLocalDataBtn" onclick="migrateLocalDataToFirebase()" class="hidden w-full touch-target rounded-xl bg-amberBg text-amberText font-bold">將本機舊資料匯入雲端</button>
           <div class="rounded-xl bg-white border border-cardBorder p-2.5 space-y-1">
             <p class="font-bold text-inkDeep">匿名登入 UID（設定資料庫白名單用）</p>
             <p id="firebaseUidText" class="font-mono text-[10px] break-all text-inkMuted">尚未登入 Firebase</p>
@@ -958,10 +959,21 @@
         if (!firebaseListenersAttached) {
           firebaseListenersAttached = true;
           fbDb.ref('transactions').on('value', snap => {
-            ledgerState.transactions = snap.val() || {};
-            saveLocalData();
-            refreshAllViews();
-            setFirebaseStatus('已同步 · 雲端連線', true);
+            const cloudTransactions = snap.val();
+            const migrateBtn = document.getElementById('migrateLocalDataBtn');
+            if (cloudTransactions && Object.keys(cloudTransactions).length > 0) {
+              ledgerState.transactions = cloudTransactions;
+              if (migrateBtn) migrateBtn.classList.add('hidden');
+              saveLocalData();
+              refreshAllViews();
+              setFirebaseStatus('已同步 · 雲端連線', true);
+            } else {
+              // 雲端目前沒有交易時保留本機舊資料，不自動覆蓋或清空。
+              if (migrateBtn && Object.keys(ledgerState.transactions || {}).length > 0) {
+                migrateBtn.classList.remove('hidden');
+              }
+              setFirebaseStatus('雲端資料庫目前沒有交易資料', true);
+            }
           }, err => {
             setFirebaseStatus('資料讀取遭拒：請檢查 UID 白名單規則', false, true);
             showToast('Firebase 讀取失敗：' + (err.message || '權限不足'));
@@ -1010,6 +1022,42 @@
         return;
       }
       copyTextFallback(firebaseAuthUid, '已複製 Firebase UID');
+    }
+
+    async function migrateLocalDataToFirebase() {
+      if (!isFirebaseConnected || !fbDb) {
+        showToast('請先完成 Firebase 連線及 UID 白名單設定');
+        return;
+      }
+      const localTransactions = ledgerState.transactions || {};
+      const localLogs = ledgerState.logs || {};
+      if (Object.keys(localTransactions).length === 0) {
+        showToast('目前沒有可匯入的本機交易資料');
+        return;
+      }
+      openConfirmDialog(
+        '確認匯入本機舊資料？',
+        '系統會再次確認雲端 transactions 與 logs 都是空的；若雲端已有資料，將取消匯入，不會覆蓋雲端帳本。',
+        async () => {
+          try {
+            const snapshot = await fbDb.ref().once('value');
+            const cloud = snapshot.val() || {};
+            if ((cloud.transactions && Object.keys(cloud.transactions).length) ||
+                (cloud.logs && Object.keys(cloud.logs).length)) {
+              showToast('雲端已存在資料，為避免覆蓋，已取消匯入');
+              return;
+            }
+            await fbDb.ref().update({
+              transactions: localTransactions,
+              logs: localLogs
+            });
+            showToast('本機舊資料已成功匯入 Firebase');
+          } catch (err) {
+            showToast('匯入失敗：' + (err.message || '請檢查資料庫規則'));
+          }
+        },
+        '確認匯入'
+      );
     }
 
     function writeTransactionToStore(txObj, logObj) {
