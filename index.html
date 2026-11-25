@@ -847,27 +847,10 @@
       };
     }
 
-    function loadLocalData() {
-      const saved = safeStorage.get(STORAGE_KEY_DATA);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (parsed && parsed.transactions) {
-            ledgerState = {
-              transactions: Object.fromEntries(Object.entries(parsed.transactions || {}).filter(([id]) => !id.startsWith('tx_demo_'))),
-              logs: Object.fromEntries(Object.entries(parsed.logs || {}).filter(([id]) => !id.startsWith('log_demo_')))
-            };
-            return;
-          }
-        } catch (e) {}
-      }
-      // 正式環境不載入示範帳務，避免範例資料混入真實帳本。
+    function initializeCloudOnlyData() {
+      // 清除舊版留下的本機帳本快取；帳本資料只從 Firebase 載入。
+      try { window.localStorage.removeItem(STORAGE_KEY_DATA); } catch (e) {}
       ledgerState = { transactions: {}, logs: {} };
-      saveLocalData();
-    }
-
-    function saveLocalData() {
-      safeStorage.set(STORAGE_KEY_DATA, JSON.stringify(ledgerState));
     }
 
     // ---------- 4. Firebase Realtime Database 動態連線 ----------
@@ -888,7 +871,6 @@
     let firebaseAuthUid = '';
     let firebaseConfigured = false;
     let firebaseListenersAttached = false;
-    let localMigrationRequired = false;
 
     function setFirebaseStatus(message, connected = false, warning = false) {
       const badge = document.getElementById('fbBadge');
@@ -956,39 +938,18 @@
         if (!firebaseListenersAttached) {
           firebaseListenersAttached = true;
           fbDb.ref('transactions').on('value', snap => {
-            const cloudTransactions = snap.val();
-            const migrateBtn = document.getElementById('migrateLocalDataBtn');
-            if (cloudTransactions && Object.keys(cloudTransactions).length > 0) {
-              ledgerState.transactions = cloudTransactions;
-              localMigrationRequired = false;
-              if (migrateBtn) migrateBtn.classList.add('hidden');
-              saveLocalData();
-              refreshAllViews();
-              setFirebaseStatus('已同步 · 雲端連線', true);
-            } else {
-              // 雲端目前沒有交易時保留本機舊資料，不自動覆蓋或清空。
-              localMigrationRequired = Object.keys(ledgerState.transactions || {}).length > 0;
-              if (migrateBtn && localMigrationRequired) {
-                migrateBtn.classList.remove('hidden');
-              }
-              setFirebaseStatus(localMigrationRequired ? '本機有舊資料，請先完成匯入再記帳' : '雲端資料庫目前沒有交易資料', true);
-            }
+            // 雲端是唯一資料來源；雲端為空時，本機狀態也維持空白。
+            ledgerState.transactions = snap.val() || {};
+            refreshAllViews();
+            setFirebaseStatus(Object.keys(ledgerState.transactions).length ? '已同步 · 雲端連線' : '雲端資料庫目前沒有交易資料', true);
           }, err => {
             setFirebaseStatus('資料讀取遭拒：請檢查 UID 白名單規則', false, true);
             showToast('Firebase 讀取失敗：' + (err.message || '權限不足'));
           });
 
           fbDb.ref('logs').on('value', snap => {
-            const cloudLogs = snap.val();
-            if (cloudLogs && Object.keys(cloudLogs).length > 0) {
-              ledgerState.logs = cloudLogs;
-              saveLocalData();
-              refreshAllViews();
-            } else if (!localMigrationRequired) {
-              ledgerState.logs = {};
-              saveLocalData();
-              refreshAllViews();
-            }
+            ledgerState.logs = snap.val() || {};
+            refreshAllViews();
           }, err => {
             setFirebaseStatus('稽核紀錄讀取遭拒：請檢查資料庫規則', false, true);
             showToast('Firebase logs 讀取失敗：' + (err.message || '權限不足'));
@@ -1070,49 +1031,31 @@
     }
 
     function writeTransactionToStore(txObj, logObj) {
-      if (isFirebaseConnected && fbDb) {
-        if (localMigrationRequired) {
-          showToast('請先在設定中匯入本機舊資料，再繼續記帳');
-          return;
-        }
-        const updates = {};
-        updates[`transactions/${txObj.id}`] = txObj;
-        if (logObj) updates[`logs/${logObj.id}`] = logObj;
-        fbDb.ref().update(updates).catch(err => {
-          showToast('雲端寫入失敗：' + (err.message || '請檢查資料庫規則'));
-          setFirebaseStatus('雲端寫入失敗，資料尚未確認同步', false, true);
-        });
-      } else if (firebaseConfigured) {
-        showToast('Firebase 尚未連線，為避免產生不同步資料，本次操作未儲存');
-      } else {
-        ledgerState.transactions[txObj.id] = txObj;
-        if (logObj) ledgerState.logs[logObj.id] = logObj;
-        saveLocalData();
-        refreshAllViews();
+      if (!isFirebaseConnected || !fbDb) {
+        showToast('雲端尚未連線，請確認網路及 Firebase 權限；本次操作未儲存');
+        return;
       }
+      const updates = {};
+      updates[`transactions/${txObj.id}`] = txObj;
+      if (logObj) updates[`logs/${logObj.id}`] = logObj;
+      fbDb.ref().update(updates).catch(err => {
+        showToast('雲端寫入失敗：' + (err.message || '請檢查資料庫規則'));
+        setFirebaseStatus('雲端寫入失敗，資料尚未確認同步', false, true);
+      });
     }
 
     function deleteTransactionFromStore(txId, logObj) {
-      if (isFirebaseConnected && fbDb) {
-        if (localMigrationRequired) {
-          showToast('請先在設定中匯入本機舊資料，再執行刪除');
-          return;
-        }
-        const updates = {};
-        updates[`transactions/${txId}`] = null;
-        if (logObj) updates[`logs/${logObj.id}`] = logObj;
-        fbDb.ref().update(updates).catch(err => {
-          showToast('雲端刪除失敗：' + (err.message || '請檢查資料庫規則'));
-          setFirebaseStatus('雲端刪除失敗，資料尚未確認同步', false, true);
-        });
-      } else if (firebaseConfigured) {
-        showToast('Firebase 尚未連線，為避免產生不同步資料，本次操作未執行');
-      } else {
-        delete ledgerState.transactions[txId];
-        if (logObj) ledgerState.logs[logObj.id] = logObj;
-        saveLocalData();
-        refreshAllViews();
+      if (!isFirebaseConnected || !fbDb) {
+        showToast('雲端尚未連線，無法刪除；本次操作未執行');
+        return;
       }
+      const updates = {};
+      updates[`transactions/${txId}`] = null;
+      if (logObj) updates[`logs/${logObj.id}`] = logObj;
+      fbDb.ref().update(updates).catch(err => {
+        showToast('雲端刪除失敗：' + (err.message || '請檢查資料庫規則'));
+        setFirebaseStatus('雲端刪除失敗，資料尚未確認同步', false, true);
+      });
     }
 
     // ---------- 5. 核心帳務結算引擎 ----------
@@ -2780,18 +2723,19 @@
             '確認覆蓋還原備份？',
             `即將匯入備份檔（包含 ${Object.keys(parsed.transactions).length} 筆交易紀錄），這將會覆蓋目前的帳本資料，確定要繼續嗎？`,
             () => {
-              ledgerState.transactions = parsed.transactions || {};
-              ledgerState.logs = parsed.logs || {};
-              if (isFirebaseConnected && fbDb) {
-                fbDb.ref().set({
-                  transactions: ledgerState.transactions,
-                  logs: ledgerState.logs
-                });
+              if (!isFirebaseConnected || !fbDb) {
+                showToast('雲端尚未連線，無法還原備份；本次操作未執行');
+                return;
               }
-              saveLocalData();
-              refreshAllViews();
-              closeModal('settingsModal');
-              showToast('已成功還原備份資料');
+              fbDb.ref().set({
+                transactions: parsed.transactions || {},
+                logs: parsed.logs || {}
+              }).then(() => {
+                closeModal('settingsModal');
+                showToast('已成功將備份還原至雲端');
+              }).catch(err => {
+                showToast('雲端還原失敗：' + (err.message || '請檢查資料庫規則'));
+              });
             },
             '確認覆蓋匯入'
           );
@@ -2807,7 +2751,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('idPreviewPeiyun').innerHTML = getKuromiAvatarSVG();
       document.getElementById('idPreviewBenson').innerHTML = getCapooAvatarSVG();
-      loadLocalData();
+      initializeCloudOnlyData();
       refreshAllViews();
       setTimeout(() => scrollTimelineToBottom(false), 60);
       initFirebaseFromSavedConfig();
