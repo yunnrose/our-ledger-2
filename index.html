@@ -277,35 +277,7 @@
         <button type="button" onclick="togglePendingFilter(false)" class="underline">顯示全部</button>
       </div>
 
-      <!-- 6. 迷你小月曆面板 (點選日期直接在下方展開當日明細，支援補登) -->
-      <section id="calendarPanel" class="hidden mb-4 bg-white rounded-[26px] p-4 shadow-card border border-cardBorder animate-pop">
-        <div class="flex items-center justify-between mb-2">
-          <button type="button" onclick="changeCalendarMonth(-1)" aria-label="上個月" class="touch-target w-9 h-9 rounded-full bg-cream hover:bg-iconBtnBg text-inkDeep font-bold flex items-center justify-center">‹</button>
-          <div class="text-center">
-            <h3 id="calendarMonthTitle" class="text-sm font-bold text-inkDeep">2026年 11月</h3>
-            <p id="calendarMonthStats" class="text-[11px] text-inkLight mt-0.5">該月支出 NT$ 0</p>
-          </div>
-          <div class="flex items-center gap-1">
-            <button type="button" onclick="jumpCalendarToday()" class="px-2.5 h-8 rounded-full bg-iconBtnBg text-capooDark text-[11px] font-bold">今天</button>
-            <button type="button" onclick="changeCalendarMonth(1)" aria-label="下個月" class="touch-target w-9 h-9 rounded-full bg-cream hover:bg-iconBtnBg text-inkDeep font-bold flex items-center justify-center">›</button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-7 text-center text-[11px] font-bold text-inkLight py-1.5">
-          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
-        </div>
-        <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
-
-        <div class="flex items-center justify-center gap-4 mt-2.5 pt-2 border-t border-cardBorder text-[10.5px] text-inkLight">
-          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-capooAvatar"></i> 支出</span>
-          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-mintText"></i> 還款</span>
-          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-amberAccent"></i> 待補</span>
-        </div>
-
-        <div id="calendarDayDetail" class="mt-3 pt-3 border-t border-cardBorder"></div>
-      </section>
-
-      <!-- 7. 主要對話時間軸 / 明細顯示區 -->
+      <!-- 6. 主要對話時間軸 / 明細顯示區 -->
       <main id="mainContentArea" class="space-y-3.5 pb-4"></main>
     </div>
   </div>
@@ -645,49 +617,92 @@
   <div id="settingsModal" class="fixed inset-0 z-50 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-card border border-cardBorder animate-pop max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-cardBorder mb-4">
-        <h3 class="text-base font-bold text-inkDeep">帳本設定與資料管理</h3>
+        <h3 class="text-base font-bold text-inkDeep">設定、身分切換與資料管理</h3>
         <button onclick="closeModal('settingsModal')" class="touch-target w-10 h-10 rounded-full hover:bg-cream text-inkLight font-bold">✕</button>
       </div>
 
       <div class="space-y-4 text-xs">
-        <!-- 身分切換 -->
         <div class="p-3.5 rounded-2xl bg-cream border border-cardBorder">
-          <div class="font-bold text-inkDeep mb-2">目前操作身分（標示操作紀錄與預設「我付」）</div>
+          <div class="font-bold text-inkDeep mb-2">目前操作身分（用於預設「我付」與稽核紀錄）</div>
           <div class="grid grid-cols-2 gap-2">
-            <button onclick="selectIdentity('佩筠')" id="settingIdPeiyun" class="touch-target py-2.5 rounded-xl font-bold border transition">我是佩筠</button>
-            <button onclick="selectIdentity('Benson')" id="settingIdBenson" class="touch-target py-2.5 rounded-xl font-bold border transition">我是 Benson</button>
+            <button id="settingIdPeiyun" onclick="selectIdentity('佩筠')" class="touch-target py-2.5 rounded-xl font-bold border">佩筠</button>
+            <button id="settingIdBenson" onclick="selectIdentity('Benson')" class="touch-target py-2.5 rounded-xl font-bold border">Benson</button>
           </div>
         </div>
 
-        <!-- 完整 JSON 與 CSV 試算表匯出 / 還原 -->
         <div class="p-3.5 rounded-2xl bg-cream border border-cardBorder space-y-2.5">
-          <div class="font-bold text-inkDeep">資料備份與試算表匯出</div>
-          <p class="text-inkLight leading-relaxed">完整匯出支出、待補、還款、已撤銷紀錄與操作歷史。匯入還原前需二次確認，絕不未經確認覆蓋既有資料。</p>
-          <div class="grid grid-cols-3 gap-2">
-            <button onclick="exportBackupJSON()" class="touch-target py-2 rounded-xl bg-capoo text-white font-bold">匯出 JSON</button>
-            <button onclick="exportBackupCSV()" class="touch-target py-2 rounded-xl bg-mintBg text-mintText border border-mintText/20 font-bold">匯出 CSV</button>
-            <label class="touch-target py-2 rounded-xl bg-white border border-cardBorder text-inkDeep font-bold flex items-center justify-center cursor-pointer hover:bg-iconBtnBg">
-              匯入還原
-              <input type="file" accept=".json" onchange="handleImportFileSelect(event)" class="hidden" />
-            </label>
+          <div class="font-bold text-inkDeep">帳本資料備份與還原</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="exportBackupJSON()" class="touch-target py-2.5 px-3 rounded-xl bg-capoo text-white font-bold shadow-xs">匯出 JSON 備份</button>
+            <button onclick="exportBackupCSV()" class="touch-target py-2.5 px-3 rounded-xl bg-mintBg text-mintText font-bold border border-mintText/20">匯出 CSV 試算表</button>
           </div>
+          <label class="touch-target w-full py-2.5 px-3 rounded-xl bg-white border border-cardBorder text-inkDeep font-bold flex items-center justify-center cursor-pointer hover:bg-gray-50">
+            <span>從 JSON 備份還原（須二次確認）</span>
+            <input type="file" id="importJsonFileInput" accept=".json" onchange="handleImportFileSelect(event)" class="hidden" />
+          </label>
         </div>
 
-        <!-- Firebase Realtime Database 設定區 -->
         <div class="p-3.5 rounded-2xl bg-cream border border-cardBorder space-y-2">
           <div class="flex items-center justify-between">
-            <span class="font-bold text-inkDeep">Firebase 雙手機即時同步</span>
+            <span class="font-bold text-inkDeep">Firebase Realtime Database 設定</span>
             <span id="fbModeBadge" class="px-2 py-0.5 rounded-full bg-iconBtnBg text-capooDark font-bold">本機演示模式</span>
           </div>
-          <p class="text-inkLight leading-relaxed">
-            貼上現有 <code class="bg-white px-1 rounded border border-cardBorder">our-ledger-2</code> 的 <code class="bg-white px-1 rounded border border-cardBorder">firebaseConfig</code> JSON，即透過 Firebase Anonymous Auth 連接既有 <code class="bg-white px-1 rounded border border-cardBorder">transactions/</code> 與 <code class="bg-white px-1 rounded border border-cardBorder">logs/</code> 路徑。
+          <p class="text-[11px] text-inkLight leading-relaxed">
+            貼上現有 <code class="bg-white px-1 rounded">our-ledger-2</code> 的 <code class="bg-white px-1 rounded">firebaseConfig</code> JSON（自動連接既有的 <code class="bg-white px-1 rounded">transactions/</code> 與 <code class="bg-white px-1 rounded">logs/</code> 路徑）：
           </p>
-          <textarea id="firebaseConfigTextarea" rows="4" placeholder='{"apiKey":"...","authDomain":"our-ledger-2.firebaseapp.com","databaseURL":"https://our-ledger-2-default-rtdb.firebaseio.com","projectId":"our-ledger-2"}' class="w-full p-2.5 rounded-xl bg-white border border-cardBorder font-mono text-[11px] text-inkDeep focus:outline-none focus:border-capoo"></textarea>
+          <textarea id="firebaseConfigTextarea" rows="4" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"https://...","projectId":"..."}' class="w-full p-2.5 rounded-xl bg-white border border-cardBorder font-mono text-[11px] text-inkDeep focus:outline-none focus:border-capoo"></textarea>
           <div class="flex gap-2">
-            <button onclick="saveAndConnectFirebase()" class="touch-target flex-1 py-2 rounded-xl bg-capooDark text-white font-bold">儲存並連線 Firebase</button>
-            <button onclick="resetFirebaseConfig()" class="touch-target px-3 py-2 rounded-xl bg-white border border-cardBorder text-inkLight font-bold">切換演示模式</button>
+            <button onclick="resetFirebaseConfig()" class="touch-target px-3 rounded-xl bg-white border border-cardBorder text-inkLight font-bold">清除設定</button>
+            <button onclick="saveAndConnectFirebase()" class="touch-target flex-1 rounded-xl bg-capooDark text-white font-bold shadow-xs">儲存並連線 Firebase</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 視窗 H：獨立「記帳小月曆」彈出視窗 ==================== -->
+  <div id="calendarModal" onclick="if(event.target===this) closeCalendarModal()" class="fixed inset-0 z-40 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-[28px] p-5 shadow-card border border-cardBorder animate-pop max-h-[88vh] flex flex-col">
+      <!-- 視窗標題列 -->
+      <div class="flex items-center justify-between pb-3 border-b border-cardBorder mb-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-iconBtnBg text-capooDark flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="3" />
+              <path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18" />
+            </svg>
+          </span>
+          <h3 class="text-base font-bold text-inkDeep">記帳小月曆</h3>
+        </div>
+        <button type="button" onclick="closeCalendarModal()" aria-label="關閉記帳小月曆" class="touch-target w-9 h-9 rounded-full hover:bg-cream text-inkLight hover:text-inkDeep font-bold flex items-center justify-center transition">✕</button>
+      </div>
+
+      <!-- 可捲動內容區：月份切換 + 日曆格 + 當日明細 -->
+      <div class="overflow-y-auto flex-1 pr-0.5">
+        <div class="flex items-center justify-between mb-2">
+          <button type="button" onclick="changeCalendarMonth(-1)" aria-label="上個月" class="touch-target w-9 h-9 rounded-full bg-cream hover:bg-iconBtnBg text-inkDeep font-bold flex items-center justify-center">‹</button>
+          <div class="text-center">
+            <h4 id="calendarMonthTitle" class="text-sm font-bold text-inkDeep">2026年 11月</h4>
+            <p id="calendarMonthStats" class="text-[11px] text-inkLight mt-0.5">該月支出 NT$ 0</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="jumpCalendarToday()" class="px-2.5 h-8 rounded-full bg-iconBtnBg text-capooDark text-[11px] font-bold">今天</button>
+            <button type="button" onclick="changeCalendarMonth(1)" aria-label="下個月" class="touch-target w-9 h-9 rounded-full bg-cream hover:bg-iconBtnBg text-inkDeep font-bold flex items-center justify-center">›</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-7 text-center text-[11px] font-bold text-inkLight py-1.5">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+
+        <div class="flex items-center justify-center gap-4 mt-2.5 pt-2 border-t border-cardBorder text-[10.5px] text-inkLight">
+          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-capooAvatar"></i> 支出</span>
+          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-mintText"></i> 還款</span>
+          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-amberAccent"></i> 待補</span>
+        </div>
+
+        <div id="calendarDayDetail" class="mt-3 pt-3 border-t border-cardBorder"></div>
       </div>
     </div>
   </div>
@@ -937,6 +952,9 @@
         if (el) {
           el.classList.add('hidden');
           el.classList.remove('flex');
+        }
+        if (topModal === 'calendarModal') {
+          isCalendarOpen = false;
         }
       }
     });
@@ -2005,19 +2023,32 @@
 
       persistTransaction(updatedRepay);
       appendAuditLog(
-        `${currentUser} 修改還款：${latestTx.payer} 還給 ${latestTx.payee} ${latestTx.amount}（${latestTx.date}） → ${amount}（${date}）`,
+        `${currentUser} 修改還款：${latestTx.payer} 還給 ${latestTx.payee} ${latestTx.amount} → ${amount}（${date}）`,
         date,
         updatedRepay.id
       );
       closeModal('repayModal');
-      showToast(`已修改還款並重算結算`);
+      showToast('已儲存還款修改並更新結算');
     }
 
-    // ---------- 10. 迷你小月曆與待補清單視窗 ----------
+    // ---------- 10. 迷你小月曆與待補清單視窗 (獨立彈出視窗版) ----------
     function toggleCalendarPanel() {
-      isCalendarOpen = !isCalendarOpen;
-      document.getElementById('calendarPanel').classList.toggle('hidden', !isCalendarOpen);
-      if (isCalendarOpen) renderCalendar();
+      if (isCalendarOpen) {
+        closeCalendarModal();
+      } else {
+        openCalendarModal();
+      }
+    }
+
+    function openCalendarModal() {
+      isCalendarOpen = true;
+      renderCalendar();
+      openModal('calendarModal');
+    }
+
+    function closeCalendarModal() {
+      isCalendarOpen = false;
+      closeModal('calendarModal');
     }
 
     function changeCalendarMonth(delta) {
