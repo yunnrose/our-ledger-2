@@ -870,8 +870,8 @@
           const parsed = JSON.parse(saved);
           if (parsed && parsed.transactions) {
             ledgerState = {
-              transactions: parsed.transactions || {},
-              logs: parsed.logs || {}
+              transactions: Object.fromEntries(Object.entries(parsed.transactions || {}).filter(([id]) => !id.startsWith('tx_demo_'))),
+              logs: Object.fromEntries(Object.entries(parsed.logs || {}).filter(([id]) => !id.startsWith('log_demo_')))
             };
             return;
           }
@@ -904,6 +904,7 @@
     let firebaseAuthUid = '';
     let firebaseConfigured = false;
     let firebaseListenersAttached = false;
+    let localMigrationRequired = false;
 
     function setFirebaseStatus(message, connected = false, warning = false) {
       const badge = document.getElementById('fbBadge');
@@ -963,16 +964,18 @@
             const migrateBtn = document.getElementById('migrateLocalDataBtn');
             if (cloudTransactions && Object.keys(cloudTransactions).length > 0) {
               ledgerState.transactions = cloudTransactions;
+              localMigrationRequired = false;
               if (migrateBtn) migrateBtn.classList.add('hidden');
               saveLocalData();
               refreshAllViews();
               setFirebaseStatus('已同步 · 雲端連線', true);
             } else {
               // 雲端目前沒有交易時保留本機舊資料，不自動覆蓋或清空。
-              if (migrateBtn && Object.keys(ledgerState.transactions || {}).length > 0) {
+              localMigrationRequired = Object.keys(ledgerState.transactions || {}).length > 0;
+              if (migrateBtn && localMigrationRequired) {
                 migrateBtn.classList.remove('hidden');
               }
-              setFirebaseStatus('雲端資料庫目前沒有交易資料', true);
+              setFirebaseStatus(localMigrationRequired ? '本機有舊資料，請先完成匯入再記帳' : '雲端資料庫目前沒有交易資料', true);
             }
           }, err => {
             setFirebaseStatus('資料讀取遭拒：請檢查 UID 白名單規則', false, true);
@@ -1055,6 +1058,9 @@
               transactions: localTransactions,
               logs: localLogs
             });
+            localMigrationRequired = false;
+            const migrateBtn = document.getElementById('migrateLocalDataBtn');
+            if (migrateBtn) migrateBtn.classList.add('hidden');
             showToast('本機舊資料已成功匯入 Firebase');
           } catch (err) {
             showToast('匯入失敗：' + (err.message || '請檢查資料庫規則'));
@@ -1066,6 +1072,10 @@
 
     function writeTransactionToStore(txObj, logObj) {
       if (isFirebaseConnected && fbDb) {
+        if (localMigrationRequired) {
+          showToast('請先在設定中匯入本機舊資料，再繼續記帳');
+          return;
+        }
         const updates = {};
         updates[`transactions/${txObj.id}`] = txObj;
         if (logObj) updates[`logs/${logObj.id}`] = logObj;
@@ -1085,6 +1095,10 @@
 
     function deleteTransactionFromStore(txId, logObj) {
       if (isFirebaseConnected && fbDb) {
+        if (localMigrationRequired) {
+          showToast('請先在設定中匯入本機舊資料，再執行刪除');
+          return;
+        }
         const updates = {};
         updates[`transactions/${txId}`] = null;
         if (logObj) updates[`logs/${logObj.id}`] = logObj;
