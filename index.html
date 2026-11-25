@@ -604,17 +604,6 @@
             </label>
           </div>
         </div>
-          <p class="text-[11px] text-inkMuted leading-relaxed">貼上現有 <code class="bg-white px-1 rounded">our-ledger-2</code> 的 <code class="bg-white px-1 rounded">firebaseConfig</code> JSON（自動連接既有的 <code class="bg-white px-1 rounded">transactions/</code> 與 <code class="bg-white px-1 rounded">logs/</code> 路徑）：</p>
-          <textarea id="firebaseConfigInput" rows="4" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"https://...","projectId":"..."}' class="w-full p-2.5 rounded-xl bg-white border border-cardBorder font-mono text-[11px]"></textarea>
-          <button type="button" onclick="saveFirebaseConfig()" class="w-full touch-target rounded-xl bg-capooBlue text-white font-bold">儲存並連線 Firebase</button>
-          <button type="button" id="migrateLocalDataBtn" onclick="migrateLocalDataToFirebase()" class="hidden w-full touch-target rounded-xl bg-amberBg text-amberText font-bold">將本機舊資料匯入雲端</button>
-          <div class="rounded-xl bg-white border border-cardBorder p-2.5 space-y-1">
-            <p class="font-bold text-inkDeep">匿名登入 UID（設定資料庫白名單用）</p>
-            <p id="firebaseUidText" class="font-mono text-[10px] break-all text-inkMuted">尚未登入 Firebase</p>
-            <button type="button" onclick="copyFirebaseUid()" class="text-capooDark font-bold text-[11px] underline">複製目前 UID</button>
-          </div>
-          <p class="text-[10px] leading-relaxed text-amberText">安全提醒：匿名登入不代表只有兩人能使用。請將兩人的 UID 加入資料庫規則白名單；不要使用「所有已登入使用者皆可讀寫」作為正式私人帳本規則。</p>
-        </div>
       </div>
     </div>
   </div>
