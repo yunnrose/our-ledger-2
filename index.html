@@ -924,8 +924,20 @@
       if (el) el.textContent = firebaseAuthUid || '尚未登入 Firebase';
     }
 
+    // Firebase Web SDK client config (public client-side identifiers; access is enforced by Realtime Database Rules).
+    const DEFAULT_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCvfXVdNOysJCKVCTdstPFYg_cFSCWAwxE",
+      authDomain: "our-ledger-2.firebaseapp.com",
+      databaseURL: "https://our-ledger-2-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "our-ledger-2",
+      storageBucket: "our-ledger-2.firebasestorage.app",
+      messagingSenderId: "982797524967",
+      appId: "1:982797524967:web:36a0f070f8ccc1ec7e6742",
+      measurementId: "G-SRTQXF9HP3"
+    };
+
     async function initFirebaseFromSavedConfig() {
-      const rawCfg = safeStorage.get(STORAGE_KEY_FB);
+      const rawCfg = safeStorage.get(STORAGE_KEY_FB) || JSON.stringify(DEFAULT_FIREBASE_CONFIG);
       if (!rawCfg) {
         firebaseConfigured = false;
         setFirebaseStatus('本機模式（尚未設定 Firebase）');
