@@ -1,0 +1,3018 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>佩筠 × Benson 的小帳本 | Our Ledger</title>
+  <meta name="theme-color" content="#FFFCF8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FFFCF8',
+            capsuleGlow: '#EAF4FA',
+            iconBtnBg: '#EEF4F8',
+            shareBtnBg: '#9CC8E8',
+            capoo: '#91C5E5',
+            capooAmount: '#8CC2E4',
+            capooAvatar: '#91BDE2',
+            capooDark: '#4D8BB5',
+            kuromi: '#B69ADB',
+            kuromiDark: '#8263AD',
+            mintBg: '#E6F4EC',
+            mintText: '#3D7A5B',
+            amberBg: '#FDF1DC',
+            amberText: '#9E7333',
+            amberAccent: '#E38B4F',
+            logBubble: '#EDF3F8',
+            datePill: '#E9F0F6',
+            ink: '#536574',
+            inkDeep: '#3B4B59',
+            inkLight: '#8B9EB0',
+            cardBorder: '#E8F0F6',
+          },
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'Inter', 'sans-serif'],
+            num: ['Inter', '"Noto Sans TC"', 'sans-serif'],
+          },
+          boxShadow: {
+            settlement: '0 0 0 6px #EAF4FA, 0 10px 26px -6px rgba(145, 197, 229, 0.25)',
+            card: '0 4px 16px -4px rgba(83, 101, 116, 0.08)',
+            pill: '0 2px 8px -2px rgba(83, 101, 116, 0.07)',
+            footer: '0 -4px 20px rgba(83, 101, 116, 0.05)',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
+    body {
+      background-color: #F4F7FA;
+      color: #536574;
+      font-family: "Noto Sans TC", "Inter", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+      padding-top: var(--sat);
+    }
+    .app-shell {
+      background-color: #FFFCF8;
+    }
+    .safe-bottom-bar {
+      padding-bottom: calc(0.65rem + var(--sab));
+    }
+    .main-feed-pb {
+      padding-bottom: calc(7.75rem + var(--sab));
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CFD9E3; border-radius: 9999px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.96) translateY(6px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop {
+      animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .calc-btn {
+      transition: transform 0.08s ease, background-color 0.15s ease;
+    }
+    .calc-btn:active {
+      transform: scale(0.94);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center selection:bg-capoo/30">
+
+  <!-- ==================== 初始身分選擇遮罩 (僅首次進入無紀錄時顯示) ==================== -->
+  <div id="identityOverlay" class="fixed inset-0 z-50 bg-cream/95 backdrop-blur-md flex items-center justify-center p-5 hidden">
+    <div class="w-full max-w-sm bg-white rounded-3xl p-7 shadow-card border border-cardBorder text-center animate-pop">
+      <div class="flex items-center justify-center gap-3 mb-4">
+        <span id="overlayKuromiIcon" class="w-14 h-14 rounded-full bg-kuromi/15 border-2 border-kuromi flex items-center justify-center"></span>
+        <span class="text-inkLight font-bold">×</span>
+        <span id="overlayCapooIcon" class="w-14 h-14 rounded-full bg-capoo/15 border-2 border-capooAvatar flex items-center justify-center"></span>
+      </div>
+      <h1 class="text-xl font-bold text-inkDeep tracking-tight">佩筠 × Benson 的小帳本</h1>
+      <p class="text-xs text-inkLight mt-1.5 mb-6">雙人共享對話式記帳 · 請選擇目前操作身分</p>
+
+      <div class="space-y-3">
+        <button onclick="selectIdentity('佩筠')" class="touch-target w-full py-3.5 px-5 rounded-2xl bg-kuromi/15 hover:bg-kuromi/25 border-2 border-kuromi text-inkDeep font-bold text-base flex items-center justify-between transition">
+          <span class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-kuromi text-white flex items-center justify-center text-xs font-bold">佩</span>
+            <span>我是佩筠</span>
+          </span>
+          <span class="text-kuromiDark text-xs font-bold">切換進入 →</span>
+        </button>
+
+        <button onclick="selectIdentity('Benson')" class="touch-target w-full py-3.5 px-5 rounded-2xl bg-capoo/15 hover:bg-capoo/25 border-2 border-capooAvatar text-inkDeep font-bold text-base flex items-center justify-between transition">
+          <span class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-capooAvatar text-white flex items-center justify-center text-xs font-bold">B</span>
+            <span>我是 Benson</span>
+          </span>
+          <span class="text-capooDark text-xs font-bold">切換進入 →</span>
+        </button>
+      </div>
+
+      <p class="text-[11px] text-inkLight mt-5 leading-relaxed">
+        雙方共用同一份即時雲端帳本，切換身分僅用於標示操作者與預設「我付」歸屬，隨時可於右上角設定中切換。
+      </p>
+    </div>
+  </div>
+
+  <!-- ==================== 主應用程式容器 (桌面置中 480px 精緻手機視窗 / 手機滿版單欄) ==================== -->
+  <div id="appContainer" class="app-shell w-full max-w-[480px] min-h-screen flex flex-col main-feed-pb shadow-xs sm:border-x sm:border-[#E6EEF5]">
+
+    <!-- 1. 頂部標題列 (精準排版比例：左側標題與同步狀態 + 右側四顆圓形圖示按鈕) -->
+    <header class="sticky top-0 z-20 bg-cream/95 backdrop-blur-md px-4 pt-3 pb-2 border-b border-[#F0F4F8] flex items-center justify-between">
+      <div class="min-w-0">
+        <h1 class="text-[16.5px] font-bold text-inkDeep tracking-tight leading-snug truncate">佩筠 × Benson 的小帳本</h1>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-mintText/80"></span>
+          <span id="syncStatusText" class="text-[11.5px] text-inkLight font-normal">已同步</span>
+        </div>
+      </div>
+
+      <!-- 右側四顆圓形圖示按鈕：月曆 / 搜尋 / 分享(柔藍強調) / 設定 -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="toggleCalendarPanel()" id="headerBtn-calendar" aria-label="月曆" title="月曆檢視與補登" class="touch-target w-9 h-9 rounded-full bg-iconBtnBg hover:bg-[#E2ECF4] text-ink flex items-center justify-center active:scale-95 transition">
+          <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="3" />
+            <path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
+        </button>
+
+        <button onclick="toggleSearchPanel()" id="headerBtn-search" aria-label="搜尋" title="搜尋歷史紀錄" class="touch-target w-9 h-9 rounded-full bg-iconBtnBg hover:bg-[#E2ECF4] text-ink flex items-center justify-center active:scale-95 transition">
+          <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7" />
+            <path stroke-linecap="round" d="m20 20-3.5-3.5" />
+          </svg>
+        </button>
+
+        <button onclick="copyShareLink()" aria-label="分享帳本連結" title="複製專屬共享網址" class="touch-target w-9 h-9 rounded-full bg-shareBtnBg hover:bg-capooDark text-white flex items-center justify-center shadow-xs active:scale-95 transition">
+          <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24">
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98" />
+          </svg>
+        </button>
+
+        <button onclick="openSettingsModal()" aria-label="設定與備份" title="設定、身分切換與備份" class="touch-target w-9 h-9 rounded-full bg-iconBtnBg hover:bg-[#E2ECF4] text-ink flex items-center justify-center active:scale-95 transition">
+          <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="px-4 pt-3.5">
+      <!-- 2. 頂部結算摘要卡片 (緊湊黃金比例，釋放下方對話時間軸可視高度) -->
+      <section id="settlementCard" onclick="toggleSettlementExpand()" class="bg-white rounded-[24px] px-4 pt-4 pb-3 shadow-settlement border border-capoo/30 mb-3.5 cursor-pointer transition hover:border-capoo/60">
+        <!-- 第一行：置中顯示「佩筠 要給 Benson NT$ 3,858.5」或「目前完全結清 ✨」 -->
+        <div id="settlementHeadline" class="flex flex-wrap items-baseline justify-center gap-1.5 text-center">
+          <!-- 動態渲染 -->
+        </div>
+
+        <!-- 第二行：置中並排兩顆膠囊按鈕 [記一筆還款] [N 筆待補] -->
+        <div class="mt-3 flex items-center justify-center gap-2.5" onclick="event.stopPropagation()">
+          <button onclick="openRepayModal()" class="touch-target px-4 py-1.5 rounded-full bg-mintBg hover:bg-[#D9EFE2] text-mintText text-[12.5px] font-bold flex items-center gap-1.5 transition active:scale-95">
+            <!-- 還款手勢線條圖示 -->
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>記一筆還款</span>
+          </button>
+
+          <button onclick="openAllPendingListModal()" id="settlementPendingBtn" class="touch-target px-4 py-1.5 rounded-full bg-amberBg hover:bg-[#FAE6C3] text-amberText text-[12.5px] font-bold flex items-center gap-1.5 transition active:scale-95">
+            <!-- 錢包線條圖示 -->
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
+            </svg>
+            <span><span id="pendingCountText">0</span> 筆待補</span>
+          </button>
+        </div>
+
+        <!-- 展開微互動提示列 -->
+        <div class="mt-2 flex items-center justify-center gap-1 text-[10.5px] text-inkLight/90 select-none">
+          <span id="settlementExpandLabel">點擊展開收支與雙方負擔明細</span>
+          <svg id="settlementChevron" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- 點擊結算文字可展開的詳細統計區 -->
+        <div id="settlementDetails" class="hidden mt-3 pt-3.5 border-t border-cardBorder space-y-3 text-xs" onclick="event.stopPropagation()">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-cream rounded-2xl p-2.5 border border-cardBorder">
+              <div class="text-[11px] text-inkLight">本月有效支出</div>
+              <div id="statMonthExpense" class="text-sm font-bold text-inkDeep mt-0.5 font-num">NT$ 0</div>
+            </div>
+            <div class="bg-cream rounded-2xl p-2.5 border border-cardBorder">
+              <div class="text-[11px] text-inkLight">累計有效支出</div>
+              <div id="statTotalExpense" class="text-sm font-bold text-inkDeep mt-0.5 font-num">NT$ 0</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-[#E5F2FA]/60 rounded-2xl p-2.5 border border-capoo/30">
+              <div class="text-[11px] font-bold text-capooDark">Benson 已付 / 應負擔</div>
+              <div class="text-xs font-bold text-inkDeep mt-0.5 font-num"><span id="statBensonPaid">NT$ 0</span> / <span id="statBensonShare">NT$ 0</span></div>
+            </div>
+            <div class="bg-[#F0E9F8]/60 rounded-2xl p-2.5 border border-kuromi/30">
+              <div class="text-[11px] font-bold text-kuromiDark">佩筠 已付 / 應負擔</div>
+              <div class="text-xs font-bold text-inkDeep mt-0.5 font-num"><span id="statPeiyunPaid">NT$ 0</span> / <span id="statPeiyunShare">NT$ 0</span></div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="button" onclick="copyLineSettlementReport()" class="px-3.5 py-1.5 rounded-full bg-iconBtnBg hover:bg-[#E1ECF4] text-capooDark text-[11.5px] font-bold transition">
+              📋 複製 LINE 結算報告
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 主要三分頁膠囊列：[全部] [還款] [明細] -->
+      <nav class="grid grid-cols-3 gap-2 mb-3.5">
+        <button id="tabBtn-all" onclick="switchMainTab('all')" class="touch-target h-10 rounded-full bg-white shadow-pill border border-[#E5EEF5] text-[13px] font-bold text-inkDeep flex items-center justify-center gap-1.5 transition">
+          <span>全部</span>
+        </button>
+        <button id="tabBtn-repay" onclick="switchMainTab('repay')" class="touch-target h-10 rounded-full bg-white/80 hover:bg-white border border-[#EDF2F7] text-[13px] font-medium text-ink flex items-center justify-center gap-1.5 transition">
+          <span>還款</span>
+        </button>
+        <button id="tabBtn-summary" onclick="switchMainTab('summary')" class="touch-target h-10 rounded-full bg-white/80 hover:bg-white border border-[#EDF2F7] text-[13px] font-medium text-ink flex items-center justify-center gap-1.5 transition">
+          <span>明細</span>
+        </button>
+      </nav>
+
+      <!-- 4. 可展開搜尋列 -->
+      <section id="searchPanel" class="hidden mb-4 bg-white rounded-[24px] p-3.5 shadow-card border border-cardBorder animate-pop">
+        <div class="flex items-center gap-2">
+          <input type="text" id="searchInput" oninput="renderMainContent()" placeholder="搜尋項目、金額、日期、付款人、分攤或備註..." class="touch-target flex-1 px-3.5 rounded-2xl bg-cream border border-cardBorder text-xs text-inkDeep focus:outline-none focus:border-capoo" />
+          <button type="button" onclick="toggleSearchPanel(false)" class="touch-target px-3 rounded-2xl bg-cream text-xs font-bold text-inkLight hover:text-inkDeep">關閉</button>
+        </div>
+      </section>
+
+      <!-- 5. 待補篩選提示列 -->
+      <div id="pendingFilterBanner" class="hidden mb-3 px-3.5 py-2 rounded-2xl bg-amberBg text-amberText text-xs font-bold flex items-center justify-between">
+        <span>目前僅顯示「待補金額」項目</span>
+        <button type="button" onclick="togglePendingFilter(false)" class="underline">顯示全部</button>
+      </div>
+
+      <!-- 6. 迷你小月曆面板 (點選日期直接在下方展開當日明細，支援補登) -->
+      <section id="calendarPanel" class="hidden mb-4 bg-white rounded-[26px] p-4 shadow-card border border-cardBorder animate-pop">
+        <div class="flex items-center justify-between mb-2">
+          <button type="button" onclick="changeCalendarMonth(-1)" aria-label="上個月" class="touch-target w-9 h-9 rounded-full bg-cream hover:bg-iconBtnBg text-inkDeep font-bold flex items-center justify-center">‹</button>
+          <div class="text-center">
+            <h3 id="calendarMonthTitle" class="text-sm font-bold text-inkDeep">2026年 11月</h3>
+            <p id="calendarMonthStats" class="text-[11px] text-inkLight mt-0.5">該月支出 NT$ 0</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="jumpCalendarToday()" class="px-2.5 h-8 rounded-full bg-iconBtnBg text-capooDark text-[11px] font-bold">今天</button>
+            <button type="button" onclick="changeCalendarMonth(1)" aria-label="下個月" class="touch-target w-9 h-9 rounded-full bg-cream hover:bg-iconBtnBg text-inkDeep font-bold flex items-center justify-center">›</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-7 text-center text-[11px] font-bold text-inkLight py-1.5">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+
+        <div class="flex items-center justify-center gap-4 mt-2.5 pt-2 border-t border-cardBorder text-[10.5px] text-inkLight">
+          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-capooAvatar"></i> 支出</span>
+          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-mintText"></i> 還款</span>
+          <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-amberAccent"></i> 待補</span>
+        </div>
+
+        <div id="calendarDayDetail" class="mt-3 pt-3 border-t border-cardBorder"></div>
+      </section>
+
+      <!-- 7. 主要對話時間軸 / 明細顯示區 -->
+      <main id="mainContentArea" class="space-y-3.5 pb-4"></main>
+    </div>
+  </div>
+
+  <!-- 懸浮「↓ 最新帳務」快速回底按鈕 -->
+  <button id="scrollToBottomBtn" onclick="scrollToLatestBottom(true)" aria-label="回到最新帳務" class="hidden fixed right-4 z-30 px-3.5 py-2 rounded-full bg-white/95 backdrop-blur-md border border-capoo/50 shadow-card text-xs font-bold text-capooDark flex items-center gap-1 active:scale-95 transition animate-pop" style="bottom: calc(6.35rem + var(--sab));">
+    <span>↓ 最新帳務</span>
+  </button>
+
+  <!-- ==================== 8. 固定底部輸入列 (快捷語意膠囊 + 圓形計算機 + 圓角輸入框 + 圓形天空藍紙飛機) ==================== -->
+  <footer class="fixed bottom-0 left-0 right-0 z-30 flex justify-center pointer-events-none">
+    <div class="w-full max-w-[480px] bg-cream/95 backdrop-blur-md border-t border-[#EDF2F7] shadow-footer safe-bottom-bar px-3.5 pt-2 pointer-events-auto">
+      <!-- 解析錯誤或成功提示條 -->
+      <div id="nlFeedbackBanner" class="hidden mb-2 px-3.5 py-2 rounded-2xl text-xs font-semibold flex items-center justify-between">
+        <span id="nlFeedbackText" class="leading-snug"></span>
+        <button onclick="hideNlFeedback()" class="ml-2 font-bold opacity-70 hover:opacity-100 p-1">✕</button>
+      </div>
+
+      <!-- 單手快捷語意膠囊列 -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1.5">
+        <button type="button" onclick="insertQuickToken('Benson付')" class="shrink-0 h-6.5 px-2.5 py-1 rounded-full bg-[#E5F2FA] hover:bg-capoo/30 text-capooDark text-[11px] font-bold transition active:scale-95">+ Benson付</button>
+        <button type="button" onclick="insertQuickToken('佩筠付')" class="shrink-0 h-6.5 px-2.5 py-1 rounded-full bg-[#F0E9F8] hover:bg-kuromi/30 text-kuromiDark text-[11px] font-bold transition active:scale-95">+ 佩筠付</button>
+        <button type="button" onclick="insertQuickToken('全算對方的')" class="shrink-0 h-6.5 px-2.5 py-1 rounded-full bg-iconBtnBg hover:bg-[#E1ECF4] text-ink text-[11px] font-semibold transition active:scale-95">+ 全算對方的</button>
+        <button type="button" onclick="insertQuickToken('自己付')" class="shrink-0 h-6.5 px-2.5 py-1 rounded-full bg-iconBtnBg hover:bg-[#E1ECF4] text-ink text-[11px] font-semibold transition active:scale-95">+ 自己付</button>
+        <button type="button" onclick="insertQuickToken('昨天')" class="shrink-0 h-6.5 px-2.5 py-1 rounded-full bg-iconBtnBg hover:bg-[#E1ECF4] text-ink text-[11px] font-semibold transition active:scale-95">+ 昨天</button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- 左側圓形計算機按鈕 -->
+        <button onclick="openCalculatorModal()" aria-label="計算機" title="開啟標準計算機" class="touch-target w-10.5 h-10.5 w-[42px] h-[42px] shrink-0 rounded-full bg-iconBtnBg hover:bg-[#E1ECF4] text-ink flex items-center justify-center active:scale-95 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <rect x="4" y="2" width="16" height="20" rx="3" />
+            <path d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" stroke-linecap="round" stroke-width="2" />
+          </svg>
+        </button>
+
+        <!-- 中間大圓角純白輸入框 -->
+        <div class="relative flex-1">
+          <input
+            type="text"
+            id="nlInput"
+            onkeydown="if(event.key==='Enter') handleNaturalLanguageSubmit()"
+            placeholder="例如：晚餐 850 Benson 付"
+            class="touch-target w-full h-[42px] pl-4 pr-8 rounded-full bg-white border border-[#E5EDF4] text-[13.5px] text-inkDeep placeholder:text-inkLight focus:outline-none focus:border-capoo transition"
+          />
+          <button onclick="document.getElementById('nlInput').value=''; hideNlFeedback();" aria-label="清空輸入" class="absolute right-2 top-2 text-inkLight hover:text-inkDeep text-xs p-1.5">✕</button>
+        </div>
+
+        <!-- 右側圓形天空藍紙飛機送出按鈕 -->
+        <button onclick="handleNaturalLanguageSubmit()" aria-label="送出記帳" title="送出記帳" class="touch-target w-[42px] h-[42px] shrink-0 rounded-full bg-shareBtnBg hover:bg-capooDark text-white flex items-center justify-center shadow-xs active:scale-95 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== 視窗 A：Windows 標準風格安全計算機 (嚴格 4×5 整齊網格與防溢位顯示區) ==================== -->
+  <div id="calculatorModal" class="fixed inset-0 z-50 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="w-full max-w-[330px] bg-white rounded-[28px] p-5 shadow-card border border-cardBorder animate-pop">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-capoo"></span>
+          <h3 class="text-sm font-bold text-inkDeep">標準計算機</h3>
+        </div>
+        <button onclick="closeCalculatorModal()" aria-label="關閉計算機" class="w-9 h-9 rounded-full hover:bg-cream text-inkLight hover:text-inkDeep font-bold flex items-center justify-center transition">✕</button>
+      </div>
+
+      <!-- 螢幕顯示區：上方完整運算式 + 下方等寬靠右結果（自動縮放與水平捲動不撐破框線） -->
+      <div class="bg-[#F6F9FC] rounded-2xl px-4 py-3 mb-3.5 border border-[#E2ECF4] text-right overflow-hidden">
+        <div id="calcExpression" class="text-[12px] text-inkLight h-5 leading-5 truncate font-num tabular-nums tracking-wide"></div>
+        <div id="calcDisplay" class="text-[28px] font-bold text-inkDeep leading-tight mt-0.5 font-num tabular-nums overflow-x-auto whitespace-nowrap">0</div>
+      </div>
+
+      <!-- 標準 4×5 整齊按鍵配置（每顆固定 52px 高，嚴格對齊不變形） -->
+      <div class="grid grid-cols-4 gap-2 mb-3.5 text-[17px] font-bold font-num select-none">
+        <!-- 第 1 列 -->
+        <button type="button" onclick="calcClear()" class="calc-btn h-[52px] rounded-2xl bg-amberBg hover:bg-[#FAE6C3] text-amberText flex items-center justify-center">C</button>
+        <button type="button" onclick="calcBackspace()" aria-label="退格" class="calc-btn h-[52px] rounded-2xl bg-iconBtnBg hover:bg-[#E1ECF4] text-inkDeep flex items-center justify-center">⌫</button>
+        <button type="button" onclick="calcOperator('/')" class="calc-btn h-[52px] rounded-2xl bg-iconBtnBg hover:bg-[#E1ECF4] text-capooDark text-lg flex items-center justify-center">÷</button>
+        <button type="button" onclick="calcOperator('*')" class="calc-btn h-[52px] rounded-2xl bg-iconBtnBg hover:bg-[#E1ECF4] text-capooDark text-lg flex items-center justify-center">×</button>
+
+        <!-- 第 2 列 -->
+        <button type="button" onclick="calcDigit('7')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">7</button>
+        <button type="button" onclick="calcDigit('8')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">8</button>
+        <button type="button" onclick="calcDigit('9')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">9</button>
+        <button type="button" onclick="calcOperator('-')" class="calc-btn h-[52px] rounded-2xl bg-iconBtnBg hover:bg-[#E1ECF4] text-capooDark text-lg flex items-center justify-center">−</button>
+
+        <!-- 第 3 列 -->
+        <button type="button" onclick="calcDigit('4')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">4</button>
+        <button type="button" onclick="calcDigit('5')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">5</button>
+        <button type="button" onclick="calcDigit('6')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">6</button>
+        <button type="button" onclick="calcOperator('+')" class="calc-btn h-[52px] rounded-2xl bg-iconBtnBg hover:bg-[#E1ECF4] text-capooDark text-lg flex items-center justify-center">+</button>
+
+        <!-- 第 4 列 -->
+        <button type="button" onclick="calcDigit('1')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">1</button>
+        <button type="button" onclick="calcDigit('2')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">2</button>
+        <button type="button" onclick="calcDigit('3')" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">3</button>
+        <button type="button" onclick="calcEquals()" class="calc-btn h-[52px] rounded-2xl bg-capoo hover:bg-capooDark text-white text-lg flex items-center justify-center shadow-xs">=</button>
+
+        <!-- 第 5 列 -->
+        <button type="button" onclick="calcDigit('0')" class="calc-btn col-span-2 h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">0</button>
+        <button type="button" onclick="calcDecimal()" class="calc-btn h-[52px] rounded-2xl bg-cream hover:bg-[#F3EFE9] border border-cardBorder text-inkDeep flex items-center justify-center">.</button>
+        <button type="button" onclick="calcEquals()" class="calc-btn h-[52px] rounded-2xl bg-kuromi hover:bg-kuromiDark text-white text-sm flex items-center justify-center shadow-xs">計算</button>
+      </div>
+
+      <button type="button" onclick="applyCalcToInput()" class="w-full h-[48px] rounded-2xl bg-mintText hover:opacity-95 text-white font-bold text-xs shadow-xs active:scale-98 transition flex items-center justify-center gap-1.5">
+        <span>帶入記帳金額（保留原項目文字）</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== 視窗 B：獨立待補清單視窗 (規格 5.2 & 9.3) ==================== -->
+  <div id="pendingListModal" class="fixed inset-0 z-50 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-card border border-cardBorder animate-pop max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-cardBorder">
+        <div>
+          <span class="text-xs font-bold text-amberText">待補金額清單</span>
+          <h3 id="pendingModalTitle" class="text-base font-bold text-inkDeep">2026-11-22 待補項目</h3>
+        </div>
+        <button onclick="closeModal('pendingListModal')" class="touch-target w-10 h-10 rounded-full hover:bg-cream text-inkLight font-bold">✕</button>
+      </div>
+      <p class="text-xs text-inkLight mt-2 mb-3">可直接輸入金額並點「✓ 補上」，或點「詳細」修改日期與分攤方式：</p>
+      <div id="pendingModalListBody" class="space-y-2.5 overflow-y-auto flex-1 pr-1"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 視窗 C：新增/編輯/補金額表單視窗 ==================== -->
+  <div id="txFormModal" class="fixed inset-0 z-50 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-card border border-cardBorder animate-pop max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-cardBorder mb-4">
+        <h3 id="txFormTitle" class="text-base font-bold text-inkDeep">修改記帳內容</h3>
+        <button onclick="closeModal('txFormModal')" class="touch-target w-10 h-10 rounded-full hover:bg-cream text-inkLight font-bold">✕</button>
+      </div>
+
+      <!-- 多人同時修改版本衝突提醒橫幅 (規格 13.2) -->
+      <div id="conflictAlertBox" class="hidden mb-4 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-800 space-y-2">
+        <div class="font-bold">偵測到多人同時修改衝突！</div>
+        <p id="conflictDetailText">另一位成員剛剛更新了這筆紀錄，為避免舊資料覆蓋最新資料，系統已阻擋本次儲存。</p>
+        <button type="button" onclick="reloadLatestIntoTxForm()" class="touch-target w-full py-2 rounded-xl bg-red-600 text-white font-bold">重新載入最新資料並檢視</button>
+      </div>
+
+      <form id="txForm" onsubmit="submitTxForm(event)" class="space-y-3.5">
+        <input type="hidden" id="txFormId" />
+        <input type="hidden" id="txFormVersion" />
+
+        <div id="txFormNlQuickBox" class="hidden bg-cream p-3 rounded-2xl border border-cardBorder">
+          <label class="block text-[11px] font-bold text-inkLight mb-1">自然語言快速帶入（選填）</label>
+          <div class="flex gap-2">
+            <input type="text" id="txFormNlInput" placeholder="例如：咖啡 140 佩筠付" class="touch-target flex-1 px-3 rounded-xl bg-white border border-cardBorder text-xs text-inkDeep" />
+            <button type="button" onclick="parseIntoTxForm()" class="touch-target px-3.5 rounded-xl bg-capoo text-white text-xs font-bold">帶入欄位</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-inkDeep mb-1">消費項目名稱 *</label>
+          <input type="text" id="txFormTitleInput" required placeholder="例如：密室、晚餐" class="touch-target w-full px-3.5 rounded-2xl bg-cream border border-cardBorder text-sm text-inkDeep focus:outline-none focus:border-capoo" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-inkDeep mb-1">金額 (NT$，留空為待補)</label>
+            <input type="number" step="0.5" min="0" id="txFormAmountInput" oninput="syncCustomAllocationHint()" placeholder="待補可留空" class="touch-target w-full px-3.5 rounded-2xl bg-cream border border-cardBorder text-sm text-inkDeep focus:outline-none focus:border-capoo" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-inkDeep mb-1">消費日期 *</label>
+            <input type="date" id="txFormDateInput" required class="touch-target w-full px-3.5 rounded-2xl bg-cream border border-cardBorder text-sm text-inkDeep focus:outline-none focus:border-capoo" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-inkDeep mb-1">實際出資付款人 *</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <label class="cursor-pointer">
+              <input type="radio" name="txFormPayer" value="佩筠" class="peer hidden" />
+              <div class="touch-target py-2.5 text-center rounded-2xl border border-cardBorder bg-cream peer-checked:bg-kuromi/20 peer-checked:border-kuromi peer-checked:font-bold text-sm text-inkDeep transition flex items-center justify-center">佩筠 付</div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="txFormPayer" value="Benson" class="peer hidden" />
+              <div class="touch-target py-2.5 text-center rounded-2xl border border-cardBorder bg-cream peer-checked:bg-capoo/20 peer-checked:border-capooAvatar peer-checked:font-bold text-sm text-inkDeep transition flex items-center justify-center">Benson 付</div>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-inkDeep mb-1">分攤方式 *</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="txFormSplit" value="equal" onchange="toggleCustomAllocationBox()" class="peer hidden" checked />
+              <div class="touch-target py-2 text-center rounded-2xl border border-cardBorder bg-cream peer-checked:bg-capoo peer-checked:text-white peer-checked:border-capoo peer-checked:font-bold text-xs text-inkDeep transition flex items-center justify-center">兩人平分</div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="txFormSplit" value="other_only" onchange="toggleCustomAllocationBox()" class="peer hidden" />
+              <div class="touch-target py-2 text-center rounded-2xl border border-cardBorder bg-cream peer-checked:bg-capoo peer-checked:text-white peer-checked:border-capoo peer-checked:font-bold text-xs text-inkDeep transition flex items-center justify-center">全算對方的（代墊）</div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="txFormSplit" value="payer_only" onchange="toggleCustomAllocationBox()" class="peer hidden" />
+              <div class="touch-target py-2 text-center rounded-2xl border border-cardBorder bg-cream peer-checked:bg-capoo peer-checked:text-white peer-checked:border-capoo peer-checked:font-bold text-xs text-inkDeep transition flex items-center justify-center">自己付</div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="txFormSplit" value="custom" onchange="toggleCustomAllocationBox()" class="peer hidden" />
+              <div class="touch-target py-2 text-center rounded-2xl border border-cardBorder bg-cream peer-checked:bg-capoo peer-checked:text-white peer-checked:border-capoo peer-checked:font-bold text-xs text-inkDeep transition flex items-center justify-center">自訂金額</div>
+            </label>
+          </div>
+        </div>
+
+        <div id="customAllocationBox" class="hidden p-3 rounded-2xl bg-iconBtnBg border border-capoo/30 space-y-2">
+          <div class="flex items-center justify-between text-[11px] font-bold text-capooDark">
+            <span>自訂雙方各自負擔金額</span>
+            <span id="customAllocSumHint">合計須等於總金額</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] text-kuromiDark font-bold mb-0.5">佩筠負擔</label>
+              <input type="number" min="0" step="0.5" id="customPeiyunInput" placeholder="0" class="touch-target w-full px-3 rounded-xl bg-white border border-cardBorder text-xs font-bold text-inkDeep" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-capooDark font-bold mb-0.5">Benson 負擔</label>
+              <input type="number" min="0" step="0.5" id="customBensonInput" placeholder="0" class="touch-target w-full px-3 rounded-xl bg-white border border-cardBorder text-xs font-bold text-inkDeep" />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-inkDeep mb-1">分類標籤（選填）</label>
+            <input type="text" id="txFormCategoryInput" placeholder="例如：餐飲、娛樂" class="touch-target w-full px-3.5 rounded-2xl bg-cream border border-cardBorder text-sm text-inkDeep focus:outline-none focus:border-capoo" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-inkDeep mb-1">備註（選填）</label>
+            <input type="text" id="txFormNoteInput" placeholder="補充說明..." class="touch-target w-full px-3.5 rounded-2xl bg-cream border border-cardBorder text-sm text-inkDeep focus:outline-none focus:border-capoo" />
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="button" id="txFormDeleteBtn" onclick="triggerDeleteFromModal()" class="hidden touch-target px-3.5 rounded-2xl bg-red-50 text-red-600 border border-red-200 font-bold text-xs">
+            永久刪除
+          </button>
+          <button type="button" onclick="closeModal('txFormModal')" class="touch-target flex-1 rounded-2xl bg-cream text-ink font-bold text-xs border border-cardBorder">取消</button>
+          <button type="submit" class="touch-target flex-1 rounded-2xl bg-capoo text-white font-bold text-xs shadow-xs">儲存紀錄</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 視窗 D：新增 / 修改還款視窗 (含超額與方向動態防呆) ==================== -->
+  <div id="repayModal" class="fixed inset-0 z-50 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-card border border-cardBorder animate-pop">
+      <div class="flex items-center justify-between pb-3 border-b border-cardBorder mb-4">
+        <h3 id="repayModalTitle" class="text-base font-bold text-inkDeep">記一筆還款</h3>
+        <button onclick="closeModal('repayModal')" class="touch-target w-10 h-10 rounded-full hover:bg-cream text-inkLight font-bold">✕</button>
+      </div>
+
+      <!-- 多人同時修改版本衝突提醒橫幅 (修改還款時同樣支援) -->
+      <div id="repayConflictAlertBox" class="hidden mb-4 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-800 space-y-2">
+        <div class="font-bold">偵測到多人同時修改衝突！</div>
+        <p id="repayConflictDetailText">另一位成員剛剛更新了這筆還款紀錄，系統已阻擋本次儲存。</p>
+        <button type="button" onclick="reloadLatestIntoRepayForm()" class="touch-target w-full py-2 rounded-xl bg-red-600 text-white font-bold">重新載入最新資料並檢視</button>
+      </div>
+
+      <div id="repayStatusNotice" class="p-3.5 rounded-2xl mb-4 text-xs leading-relaxed"></div>
+
+      <form id="repayForm" onsubmit="submitRepayForm(event)" class="space-y-3.5">
+        <input type="hidden" id="repayEditId" />
+        <input type="hidden" id="repayEditVersion" />
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-inkDeep mb-1">還款人</label>
+            <input type="text" id="repayPayerInput" readonly class="touch-target w-full px-3.5 rounded-2xl bg-cream text-inkDeep font-bold text-sm border border-cardBorder" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-inkDeep mb-1">收款人</label>
+            <input type="text" id="repayPayeeInput" readonly class="touch-target w-full px-3.5 rounded-2xl bg-cream text-inkDeep font-bold text-sm border border-cardBorder" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-inkDeep mb-1">還款金額 (NT$) *</label>
+            <input type="number" step="0.5" min="0.5" id="repayAmountInput" required class="touch-target w-full px-3.5 rounded-2xl bg-cream border border-cardBorder text-sm font-bold text-inkDeep focus:outline-none focus:border-mintText" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-inkDeep mb-1">還款日期 *</label>
+            <input type="date" id="repayDateInput" required class="touch-target w-full px-3.5 rounded-2xl bg-cream border border-cardBorder text-sm text-inkDeep focus:outline-none focus:border-mintText" />
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="button" id="repayDeleteBtn" onclick="triggerDeleteRepayFromModal()" class="hidden touch-target px-3.5 rounded-2xl bg-red-50 text-red-600 border border-red-200 font-bold text-xs">
+            永久刪除
+          </button>
+          <button type="button" onclick="closeModal('repayModal')" class="touch-target flex-1 rounded-2xl bg-cream text-ink font-bold text-xs border border-cardBorder">關閉</button>
+          <button type="submit" id="repaySubmitBtn" class="touch-target flex-1 rounded-2xl bg-mintText text-white font-bold text-xs shadow-xs">確認還款</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 視窗 E：多品項待補拆解確認視窗 ==================== -->
+  <div id="multiPendingModal" class="fixed inset-0 z-50 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-card border border-cardBorder animate-pop max-h-[85vh] flex flex-col">
+      <div class="pb-3 border-b border-cardBorder">
+        <h3 class="text-base font-bold text-inkDeep">多品項待補建立確認</h3>
+        <p id="multiPendingSubTitle" class="text-xs text-inkLight mt-0.5">偵測到多個未附金額的品項，請確認拆解明細：</p>
+      </div>
+
+      <div id="multiPendingList" class="my-3.5 space-y-2 overflow-y-auto flex-1 pr-1"></div>
+
+      <p class="text-[11px] text-inkLight mb-3">※ 系統絕不自行捏造金額，確認後將建立為多筆獨立「待補」項目。</p>
+
+      <div class="space-y-2">
+        <button onclick="confirmCreateMultiPending()" class="touch-target w-full py-2.5 px-4 rounded-2xl bg-capoo text-white text-xs font-bold shadow-xs">
+          確認建立以上多筆待補項目
+        </button>
+        <button onclick="closeModal('multiPendingModal')" class="touch-target w-full py-2.5 px-4 rounded-2xl bg-cream text-ink text-xs font-bold border border-cardBorder">
+          取消並返回修改輸入內容
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 視窗 F：操作確認視窗 ==================== -->
+  <div id="confirmActionModal" class="fixed inset-0 z-50 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-white rounded-3xl p-5 shadow-card border border-cardBorder animate-pop">
+      <h3 id="confirmActionTitle" class="text-base font-bold text-inkDeep">確認操作</h3>
+      <p id="confirmActionDesc" class="text-xs text-inkLight mt-2 leading-relaxed"></p>
+      <div class="mt-5 flex gap-2">
+        <button onclick="closeModal('confirmActionModal')" class="touch-target flex-1 rounded-2xl bg-cream text-ink text-xs font-bold border border-cardBorder">取消</button>
+        <button id="confirmActionExecuteBtn" class="touch-target flex-1 rounded-2xl bg-red-500 text-white text-xs font-bold">確認執行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 視窗 G：設定、身分切換、Firebase 連線與備份匯出 ==================== -->
+  <div id="settingsModal" class="fixed inset-0 z-50 bg-inkDeep/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-card border border-cardBorder animate-pop max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-cardBorder mb-4">
+        <h3 class="text-base font-bold text-inkDeep">帳本設定與資料管理</h3>
+        <button onclick="closeModal('settingsModal')" class="touch-target w-10 h-10 rounded-full hover:bg-cream text-inkLight font-bold">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- 身分切換 -->
+        <div class="p-3.5 rounded-2xl bg-cream border border-cardBorder">
+          <div class="font-bold text-inkDeep mb-2">目前操作身分（標示操作紀錄與預設「我付」）</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="selectIdentity('佩筠')" id="settingIdPeiyun" class="touch-target py-2.5 rounded-xl font-bold border transition">我是佩筠</button>
+            <button onclick="selectIdentity('Benson')" id="settingIdBenson" class="touch-target py-2.5 rounded-xl font-bold border transition">我是 Benson</button>
+          </div>
+        </div>
+
+        <!-- 完整 JSON 與 CSV 試算表匯出 / 還原 -->
+        <div class="p-3.5 rounded-2xl bg-cream border border-cardBorder space-y-2.5">
+          <div class="font-bold text-inkDeep">資料備份與試算表匯出</div>
+          <p class="text-inkLight leading-relaxed">完整匯出支出、待補、還款、已撤銷紀錄與操作歷史。匯入還原前需二次確認，絕不未經確認覆蓋既有資料。</p>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="exportBackupJSON()" class="touch-target py-2 rounded-xl bg-capoo text-white font-bold">匯出 JSON</button>
+            <button onclick="exportBackupCSV()" class="touch-target py-2 rounded-xl bg-mintBg text-mintText border border-mintText/20 font-bold">匯出 CSV</button>
+            <label class="touch-target py-2 rounded-xl bg-white border border-cardBorder text-inkDeep font-bold flex items-center justify-center cursor-pointer hover:bg-iconBtnBg">
+              匯入還原
+              <input type="file" accept=".json" onchange="handleImportFileSelect(event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Firebase Realtime Database 設定區 -->
+        <div class="p-3.5 rounded-2xl bg-cream border border-cardBorder space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-inkDeep">Firebase 雙手機即時同步</span>
+            <span id="fbModeBadge" class="px-2 py-0.5 rounded-full bg-iconBtnBg text-capooDark font-bold">本機演示模式</span>
+          </div>
+          <p class="text-inkLight leading-relaxed">
+            貼上現有 <code class="bg-white px-1 rounded border border-cardBorder">our-ledger-2</code> 的 <code class="bg-white px-1 rounded border border-cardBorder">firebaseConfig</code> JSON，即透過 Firebase Anonymous Auth 連接既有 <code class="bg-white px-1 rounded border border-cardBorder">transactions/</code> 與 <code class="bg-white px-1 rounded border border-cardBorder">logs/</code> 路徑。
+          </p>
+          <textarea id="firebaseConfigTextarea" rows="4" placeholder='{"apiKey":"...","authDomain":"our-ledger-2.firebaseapp.com","databaseURL":"https://our-ledger-2-default-rtdb.firebaseio.com","projectId":"our-ledger-2"}' class="w-full p-2.5 rounded-xl bg-white border border-cardBorder font-mono text-[11px] text-inkDeep focus:outline-none focus:border-capoo"></textarea>
+          <div class="flex gap-2">
+            <button onclick="saveAndConnectFirebase()" class="touch-target flex-1 py-2 rounded-xl bg-capooDark text-white font-bold">儲存並連線 Firebase</button>
+            <button onclick="resetFirebaseConfig()" class="touch-target px-3 py-2 rounded-xl bg-white border border-cardBorder text-inkLight font-bold">切換演示模式</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 輕量提示 -->
+  <div id="toastMsg" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-inkDeep text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg hidden animate-pop"></div>
+
+  <script>
+    /* ==========================================================================
+       佩筠 × Benson 的小帳本 | Our Ledger
+       ========================================================================== */
+
+    const STORAGE_KEY_TX = 'our_ledger_v6_visual_transactions';
+    const STORAGE_KEY_LOGS = 'our_ledger_v6_visual_logs';
+    const STORAGE_KEY_USER = 'our_ledger_v6_visual_user';
+    const STORAGE_KEY_FB = 'our_ledger_v6_visual_fb_config';
+
+    // 安全存取 Storage（避免部分瀏覽器無痕或 iFrame 限制導致拋錯中斷）
+    const memoryStorage = {};
+    const safeStorage = {
+      getItem(key) {
+        try {
+          return window.localStorage.getItem(key);
+        } catch (e) {
+          return Object.prototype.hasOwnProperty.call(memoryStorage, key) ? memoryStorage[key] : null;
+        }
+      },
+      setItem(key, val) {
+        memoryStorage[key] = String(val);
+        try {
+          window.localStorage.setItem(key, String(val));
+        } catch (e) {}
+      },
+      removeItem(key) {
+        delete memoryStorage[key];
+        try {
+          window.localStorage.removeItem(key);
+        } catch (e) {}
+      }
+    };
+
+    let currentUser = safeStorage.getItem(STORAGE_KEY_USER) || '佩筠';
+    let transactions = [];
+    let logs = [];
+    let currentTab = 'all';
+    let filterPendingOnly = false;
+    let isSettlementExpanded = false;
+    let isCalendarOpen = false;
+    let isSearchOpen = false;
+    let calYear, calMonth, selectedCalDate;
+    let pendingMultiBatch = null;
+
+    let fbApp = null;
+    let fbDb = null;
+    let isFirebaseConnected = false;
+
+    let syncChannel = null;
+    try {
+      if ('BroadcastChannel' in window) {
+        syncChannel = new BroadcastChannel('our_ledger_visual_sync');
+        syncChannel.onmessage = (e) => {
+          if (e.data && e.data.type === 'SYNC_UPDATE' && !isFirebaseConnected) {
+            loadLocalData();
+            refreshAllUI();
+            showToast('已同步最新帳務更新');
+          }
+        };
+      }
+    } catch (e) {}
+
+    // ---------- 1. 專屬可愛插畫頭像 SVG (咖波藍貓咪 & 酷洛米紫兔耳小惡魔) ----------
+    function getCapooAvatarSVG(size = 34) {
+      return `
+        <svg width="${size}" height="${size}" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="19" fill="#FFFFFF" stroke="#CBE3F5" stroke-width="1.5"/>
+          <path d="M12.5 14.5L10.5 8.5L16.5 12.2C18.8 11.7 21.2 11.7 23.5 12.2L29.5 8.5L27.5 14.5C30.2 16.8 31 20.8 29.5 24.5C27.8 28.2 12.2 28.2 10.5 24.5C9 20.8 9.8 16.8 12.5 14.5Z" fill="#7CC0EA" stroke="#3B4B59" stroke-width="1.4" stroke-linejoin="round"/>
+          <ellipse cx="20" cy="22.8" rx="7.2" ry="4.6" fill="#FFFFFF" opacity="0.9"/>
+          <circle cx="15.5" cy="18.2" r="1.4" fill="#3B4B59"/>
+          <circle cx="24.5" cy="18.2" r="1.4" fill="#3B4B59"/>
+          <path d="M18.2 19.6L20 21.4L21.8 19.6" stroke="#3B4B59" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="13.5" cy="20.4" rx="1.6" ry="1" fill="#F6A5B8" opacity="0.75"/>
+          <ellipse cx="26.5" cy="20.4" rx="1.6" ry="1" fill="#F6A5B8" opacity="0.75"/>
+        </svg>
+      `;
+    }
+
+    function getKuromiAvatarSVG(size = 34) {
+      return `
+        <svg width="${size}" height="${size}" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="19" fill="#FFFFFF" stroke="#D5C4EC" stroke-width="1.5"/>
+          <!-- 酷洛米紫小惡魔頭套與尖耳朵 -->
+          <path d="M12.5 16L9.5 8.5L16.5 13.5C18.8 12.8 21.2 12.8 23.5 13.5L30.5 8.5L27.5 16C29.5 18.2 30 22 28.5 25.2C26.8 28.2 13.2 28.2 11.5 25.2C10 22 10.5 18.2 12.5 16Z" fill="#9D82C9" stroke="#3B4B59" stroke-width="1.3" stroke-linejoin="round"/>
+          <!-- 耳朵小圓球 -->
+          <circle cx="9.2" cy="8.2" r="1.6" fill="#F4A7C3" stroke="#3B4B59" stroke-width="1.1"/>
+          <circle cx="30.8" cy="8.2" r="1.6" fill="#F4A7C3" stroke="#3B4B59" stroke-width="1.1"/>
+          <!-- 白色小臉蛋 -->
+          <ellipse cx="20" cy="21.8" rx="6.8" ry="4.8" fill="#FFFFFF"/>
+          <!-- 額頭粉色小愛心/骷髏裝飾 -->
+          <circle cx="20" cy="15.3" r="1.5" fill="#F4A7C3"/>
+          <!-- 可愛大眼睛與微笑 -->
+          <circle cx="16.5" cy="21.2" r="1.3" fill="#3B4B59"/>
+          <circle cx="23.5" cy="21.2" r="1.3" fill="#3B4B59"/>
+          <path d="M18.8 23.2C19.5 24 20.5 24 21.2 23.2" stroke="#3B4B59" stroke-width="1.2" stroke-linecap="round"/>
+          <ellipse cx="14.5" cy="22.8" rx="1.4" ry="0.9" fill="#F6A5B8" opacity="0.8"/>
+          <ellipse cx="25.5" cy="22.8" rx="1.4" ry="0.9" fill="#F6A5B8" opacity="0.8"/>
+        </svg>
+      `;
+    }
+
+    // ---------- 2. 台灣時區 (Asia/Taipei) 日期與金額格式化工具 ----------
+    function getTaipeiTodayStr() {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(new Date()); // YYYY-MM-DD
+    }
+
+    function getTaipeiNowISO() {
+      const parts = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      }).format(new Date());
+      return parts.replace(' ', 'T') + '+08:00';
+    }
+
+    // 格式化為截圖樣式：「11/22 下午09:30」或「11/23 上午01:16」
+    function formatZhTimeStamp(isoStr) {
+      if (!isoStr) return '';
+      const dt = new Date(isoStr);
+      if (isNaN(dt.getTime())) return isoStr.slice(5, 16).replace('-', '/');
+      const md = new Intl.DateTimeFormat('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(dt);
+      const hm = new Intl.DateTimeFormat('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }).format(dt);
+      return `${md} ${hm}`;
+    }
+
+    // 格式化日期膠囊為「11月22日」
+    function formatChineseMonthDay(dateStr) {
+      if (!dateStr || dateStr.length < 10) return dateStr || '';
+      const m = Number(dateStr.slice(5, 7));
+      const d = Number(dateStr.slice(8, 10));
+      return `${m}月${d}日`;
+    }
+
+    function getCurrentTaipeiYearMonth() {
+      return getTaipeiTodayStr().slice(0, 7);
+    }
+
+    function shiftDateStr(dateStr, deltaDays) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dt = new Date(Date.UTC(y, m - 1, d + deltaDays));
+      return dt.toISOString().slice(0, 10);
+    }
+
+    function formatCurrency(num) {
+      const val = Number(num) || 0;
+      const hasHalf = Math.abs(val % 1) > 0.001;
+      return 'NT$ ' + val.toLocaleString('zh-TW', {
+        minimumFractionDigits: hasHalf ? 1 : 0,
+        maximumFractionDigits: 1
+      });
+    }
+
+    function generateId(prefix = 'tx') {
+      return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    }
+
+    function getSplitDisplayLabel(splitType, payer) {
+      const other = payer === 'Benson' ? '佩筠' : 'Benson';
+      switch (splitType) {
+        case 'other_only':
+        case 'full_other':
+          return `${other} 負擔（代墊）`;
+        case 'payer_only':
+          return '自己付';
+        case 'custom':
+          return '自訂金額';
+        case 'equal':
+        default:
+          return '兩人平分';
+      }
+    }
+
+    function normalizeSplitType(splitType) {
+      if (splitType === 'full_other') return 'other_only';
+      return splitType || 'equal';
+    }
+
+    // ---------- 3. 初始化與與截圖完全一致的預設資料 ----------
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('overlayKuromiIcon').innerHTML = getKuromiAvatarSVG(48);
+      document.getElementById('overlayCapooIcon').innerHTML = getCapooAvatarSVG(48);
+
+      const todayStr = getTaipeiTodayStr();
+      const [y, m] = todayStr.split('-').map(Number);
+      calYear = y;
+      calMonth = m - 1;
+      selectedCalDate = todayStr;
+
+      const savedFb = safeStorage.getItem(STORAGE_KEY_FB);
+      if (savedFb) {
+        document.getElementById('firebaseConfigTextarea').value = savedFb;
+        try {
+          initFirebase(JSON.parse(savedFb));
+        } catch (err) {
+          initScreenshotDemoData();
+        }
+      } else {
+        initScreenshotDemoData();
+      }
+
+      if (!safeStorage.getItem(STORAGE_KEY_USER)) {
+        safeStorage.setItem(STORAGE_KEY_USER, '佩筠');
+      }
+      updateIdentityUI();
+      refreshAllUI();
+      setTimeout(() => scrollToLatestBottom(false), 80);
+    });
+
+    // 監聽頁面捲動，當往上翻閱舊帳時顯示「↓ 最新帳務」膠囊
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('scrollToBottomBtn');
+      if (!btn || currentTab === 'summary') {
+        if (btn) btn.classList.add('hidden');
+        return;
+      }
+      const distFromBottom = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+      btn.classList.toggle('hidden', distFromBottom < 260);
+    }, { passive: true });
+
+    // 監聽系統返回鍵/邊緣手勢，優先關閉已開啟的視窗
+    window.addEventListener('popstate', () => {
+      const topModal = openModalStack.pop();
+      if (topModal) {
+        const el = document.getElementById(topModal);
+        if (el) {
+          el.classList.add('hidden');
+          el.classList.remove('flex');
+        }
+      }
+    });
+
+    function scrollToLatestBottom(smooth = true) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto'
+      });
+    }
+
+    function insertQuickToken(token) {
+      const input = document.getElementById('nlInput');
+      const cur = input.value.trim();
+      input.value = cur ? `${cur} ${token}` : `${token} `;
+      input.focus();
+    }
+
+    function copyLineSettlementReport() {
+      const s = computeLedgerSummary();
+      const todayStr = getTaipeiTodayStr();
+      const ym = getCurrentTaipeiYearMonth();
+      const statusLine = (s.unsettledAmount <= 0 || !s.debtor)
+        ? '✨ 目前雙方帳務已完全結清！'
+        : `💰 結算結果：${s.debtor} 要給 ${s.creditor} ${formatCurrency(s.unsettledAmount)}`;
+
+      const report = [
+        `📒 佩筠 × Benson 的小帳本（${todayStr}）`,
+        `━━━━━━━━━━━━━━`,
+        statusLine,
+        s.pendingCount > 0 ? `⏳ 待補金額：尚有 ${s.pendingCount} 筆待補` : `✅ 待補項目：無`,
+        `━━━━━━━━━━━━━━`,
+        `📅 本月有效支出 (${ym})：${formatCurrency(s.monthExpense)}`,
+        `📊 累計有效支出：${formatCurrency(s.totalExpense)}`,
+        `💙 Benson：已付 ${formatCurrency(s.bensonPaid)} / 應負擔 ${formatCurrency(s.bensonShare)}`,
+        `💜 佩筠：已付 ${formatCurrency(s.peiyunPaid)} / 應負擔 ${formatCurrency(s.peiyunShare)}`
+      ].join(String.fromCharCode(10));
+
+      const ta = document.createElement('textarea');
+      ta.value = report;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('已複製 LINE 結算報告，可直接貼給對方！');
+    }
+
+    // 預設資料精準對應參考截圖 (`image_3cbc05.png`) 的金額與時間軸
+    function initScreenshotDemoData() {
+      loadLocalData();
+      if (transactions.length === 0 && logs.length === 0) {
+        transactions = [
+          {
+            id: 'tx_demo_prev',
+            type: 'expense',
+            status: 'active',
+            title: '日常採買與交通',
+            amount: 3117,
+            date: '2026-11-21',
+            payer: 'Benson',
+            splitType: 'equal',
+            allocation: null,
+            category: '',
+            note: '',
+            filledHint: 'Benson 於 11/23 上午01:16 補上金額',
+            version: 1,
+            updatedAt: '2026-11-23T01:16:00+08:00'
+          },
+          {
+            id: 'tx_demo_escape',
+            type: 'expense',
+            status: 'active',
+            title: '密室',
+            amount: 1600,
+            date: '2026-11-22',
+            payer: 'Benson',
+            splitType: 'other_only',
+            allocation: null,
+            category: '',
+            note: '',
+            filledHint: '佩筠 於 11/22 下午09:30 補上金額',
+            version: 2,
+            updatedAt: '2026-11-22T21:30:00+08:00'
+          },
+          {
+            id: 'tx_demo_dinner',
+            type: 'expense',
+            status: 'active',
+            title: '晚餐',
+            amount: 1400,
+            date: '2026-11-22',
+            payer: 'Benson',
+            splitType: 'equal',
+            allocation: null,
+            category: '餐飲',
+            note: '',
+            filledHint: 'Benson 於 11/23 上午01:16 補上金額',
+            version: 2,
+            updatedAt: '2026-11-23T01:16:00+08:00'
+          },
+          {
+            id: 'tx_demo_pending',
+            type: 'expense',
+            status: 'pending',
+            title: '超商咖啡點心',
+            amount: null,
+            date: getTaipeiTodayStr(),
+            payer: '佩筠',
+            splitType: 'equal',
+            allocation: null,
+            category: '',
+            note: '',
+            filledHint: '',
+            version: 1,
+            updatedAt: getTaipeiNowISO()
+          }
+        ];
+        // 說明：3117/2 (1558.5) + 1600 (全算佩筠) + 1400/2 (700) = 3,858.5，與截圖 NT$ 3,858.5 100% 精準吻合！
+
+        logs = [
+          {
+            id: 'log_demo_1',
+            afterTxId: 'tx_demo_escape',
+            date: '2026-11-22',
+            timestamp: '2026-11-22T21:30:00+08:00',
+            message: '佩筠 修改：密室 待補 → 密室 1600 （Benson 付；2026-11-22）'
+          },
+          {
+            id: 'log_demo_2',
+            afterTxId: 'tx_demo_dinner',
+            date: '2026-11-11',
+            timestamp: '2026-11-23T01:15:00+08:00',
+            message: 'Benson 修改：超商 待補 → 超商 380 （Benson 付；2026-11-11）'
+          },
+          {
+            id: 'log_demo_3',
+            afterTxId: 'tx_demo_dinner',
+            date: '2026-11-14',
+            timestamp: '2026-11-23T01:15:00+08:00',
+            message: 'Benson 修改：星巴克 待補 → 星巴克 465 （Benson 付；2026-11-14）'
+          }
+        ];
+        saveLocalData(false);
+      }
+    }
+
+    function loadLocalData() {
+      try {
+        const rawTx = safeStorage.getItem(STORAGE_KEY_TX);
+        const rawLogs = safeStorage.getItem(STORAGE_KEY_LOGS);
+        transactions = rawTx ? JSON.parse(rawTx) : [];
+        logs = rawLogs ? JSON.parse(rawLogs) : [];
+      } catch (e) {
+        transactions = [];
+        logs = [];
+      }
+    }
+
+    function saveLocalData(broadcast = true) {
+      safeStorage.setItem(STORAGE_KEY_TX, JSON.stringify(transactions));
+      safeStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
+      if (broadcast && syncChannel) {
+        try {
+          syncChannel.postMessage({ type: 'SYNC_UPDATE' });
+        } catch (e) {}
+      }
+    }
+
+    // ---------- 4. Firebase Realtime Database + Anonymous Auth (動態按需載入 SDK，確保預覽與離線環境零報錯) ----------
+    function loadFirebaseScripts() {
+      return new Promise((resolve, reject) => {
+        if (window.firebase && firebase.auth && firebase.database) {
+          resolve();
+          return;
+        }
+        const urls = [
+          'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+          'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
+          'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'
+        ];
+        let idx = 0;
+        function next() {
+          if (idx >= urls.length) {
+            resolve();
+            return;
+          }
+          const s = document.createElement('script');
+          s.src = urls[idx++];
+          s.onload = next;
+          s.onerror = () => reject(new Error('無法載入 Firebase SDK，請檢查網路連線'));
+          document.head.appendChild(s);
+        }
+        next();
+      });
+    }
+
+    async function initFirebase(configObj) {
+      try {
+        document.getElementById('syncStatusText').textContent = '連線中...';
+        await loadFirebaseScripts();
+
+        if (!firebase.apps.length) {
+          fbApp = firebase.initializeApp(configObj);
+        } else {
+          fbApp = firebase.app();
+        }
+        const auth = firebase.auth();
+        fbDb = firebase.database();
+
+        auth.signInAnonymously()
+          .then(() => {
+            isFirebaseConnected = true;
+            document.getElementById('syncStatusText').textContent = '已同步';
+            const badge = document.getElementById('fbModeBadge');
+            badge.textContent = '已連線雲端資料庫';
+            badge.className = 'px-2 py-0.5 rounded-full bg-mintBg text-mintText font-bold';
+
+            fbDb.ref('transactions').on('value', (snap) => {
+              const val = snap.val() || {};
+              transactions = Object.keys(val).map(k => ({ id: k, ...val[k] }));
+              refreshAllUI();
+            });
+
+            fbDb.ref('logs').on('value', (snap) => {
+              const val = snap.val() || {};
+              logs = Object.keys(val).map(k => ({ id: k, ...val[k] }));
+              refreshAllUI();
+            });
+          })
+          .catch((err) => {
+            document.getElementById('syncStatusText').textContent = '離線本機模式';
+            showToast('Firebase 連線失敗：' + err.message);
+          });
+      } catch (e) {
+        document.getElementById('syncStatusText').textContent = '已同步';
+        showToast('Firebase 連線提示：' + e.message);
+      }
+    }
+
+    function saveAndConnectFirebase() {
+      const raw = document.getElementById('firebaseConfigTextarea').value.trim();
+      if (!raw) {
+        showToast('請貼上 firebaseConfig JSON 內容');
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed.databaseURL) {
+          showToast('設定中缺少 databaseURL');
+          return;
+        }
+        safeStorage.setItem(STORAGE_KEY_FB, JSON.stringify(parsed, null, 2));
+        initFirebase(parsed);
+        closeModal('settingsModal');
+        showToast('已儲存設定並啟動雲端連線');
+      } catch (e) {
+        showToast('JSON 格式不正確，請檢查括號與雙引號');
+      }
+    }
+
+    function resetFirebaseConfig() {
+      safeStorage.removeItem(STORAGE_KEY_FB);
+      isFirebaseConnected = false;
+      document.getElementById('firebaseConfigTextarea').value = '';
+      const badge = document.getElementById('fbModeBadge');
+      badge.textContent = '本機演示模式';
+      badge.className = 'px-2 py-0.5 rounded-full bg-iconBtnBg text-capooDark font-bold';
+      document.getElementById('syncStatusText').textContent = '已同步';
+      loadLocalData();
+      refreshAllUI();
+      showToast('已切換回本機演示模式');
+    }
+
+    function persistTransaction(txObj) {
+      if (isFirebaseConnected && fbDb) {
+        const { id, ...payload } = txObj;
+        fbDb.ref(`transactions/${id}`).set(payload);
+      } else {
+        const idx = transactions.findIndex(t => t.id === txObj.id);
+        if (idx >= 0) transactions[idx] = txObj;
+        else transactions.push(txObj);
+        saveLocalData(true);
+        refreshAllUI();
+      }
+    }
+
+    function removeTransactionFromStore(txId) {
+      if (isFirebaseConnected && fbDb) {
+        fbDb.ref(`transactions/${txId}`).remove();
+      } else {
+        transactions = transactions.filter(t => t.id !== txId);
+        saveLocalData(true);
+        refreshAllUI();
+      }
+    }
+
+    function appendAuditLog(message, relatedDate = null, afterTxId = null) {
+      const logEntry = {
+        id: generateId('log'),
+        timestamp: getTaipeiNowISO(),
+        date: relatedDate || getTaipeiTodayStr(),
+        afterTxId,
+        message
+      };
+      if (isFirebaseConnected && fbDb) {
+        const { id, ...payload } = logEntry;
+        fbDb.ref(`logs/${id}`).set(payload);
+      } else {
+        logs.unshift(logEntry);
+        saveLocalData(true);
+      }
+    }
+
+    // ---------- 5. 身分切換與一鍵複製分享連結 ----------
+    function selectIdentity(name) {
+      currentUser = name;
+      safeStorage.setItem(STORAGE_KEY_USER, name);
+      document.getElementById('identityOverlay').classList.add('hidden');
+      updateIdentityUI();
+      showToast(`已切換操作身分為：${name}`);
+    }
+
+    function updateIdentityUI() {
+      const btnP = document.getElementById('settingIdPeiyun');
+      const btnB = document.getElementById('settingIdBenson');
+      if (btnP && btnB) {
+        btnP.className = currentUser === '佩筠'
+          ? 'touch-target py-2.5 rounded-xl font-bold border-2 border-kuromi bg-kuromi/20 text-inkDeep'
+          : 'touch-target py-2.5 rounded-xl font-semibold border border-cardBorder bg-white text-inkLight';
+        btnB.className = currentUser === 'Benson'
+          ? 'touch-target py-2.5 rounded-xl font-bold border-2 border-capooAvatar bg-capoo/20 text-inkDeep'
+          : 'touch-target py-2.5 rounded-xl font-semibold border border-cardBorder bg-white text-inkLight';
+      }
+    }
+
+    function copyShareLink() {
+      const url = window.location.href;
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('已複製專屬小帳本連結，可直接傳送給對方！');
+    }
+    // ---------- 6. 核心分攤與滾動累積結算引擎 (支援排除指定 ID 以精準計算修改還款時之上限) ----------
+    function calculateShares(tx) {
+      const total = Number(tx.amount) || 0;
+      const payer = tx.payer;
+      const split = normalizeSplitType(tx.splitType);
+
+      if (split === 'other_only') {
+        return payer === 'Benson'
+          ? { bensonShare: 0, peiyunShare: total }
+          : { bensonShare: total, peiyunShare: 0 };
+      }
+      if (split === 'payer_only') {
+        return payer === 'Benson'
+          ? { bensonShare: total, peiyunShare: 0 }
+          : { bensonShare: 0, peiyunShare: total };
+      }
+      if (split === 'custom' && tx.allocation) {
+        const b = Number(tx.allocation['Benson']) || 0;
+        const p = Number(tx.allocation['佩筠']) || 0;
+        return { bensonShare: b, peiyunShare: p };
+      }
+      // 兩人平分 (equal)
+      const half = Math.round((total / 2) * 10) / 10;
+      const otherHalf = Math.round((total - half) * 10) / 10;
+      return { bensonShare: half, peiyunShare: otherHalf };
+    }
+
+    function computeLedgerSummary(excludeTxId = null) {
+      const currentMonth = getCurrentTaipeiYearMonth();
+      let monthExpense = 0;
+      let totalExpense = 0;
+      let bensonPaid = 0;
+      let peiyunPaid = 0;
+      let bensonShare = 0;
+      let peiyunShare = 0;
+      let bensonRepaidToPeiyun = 0;
+      let peiyunRepaidToBenson = 0;
+      let pendingCount = 0;
+
+      transactions.forEach(tx => {
+        if (excludeTxId && tx.id === excludeTxId) return;
+        if (tx.status === 'voided' || tx.voided === true) return;
+        const kind = tx.type || tx.kind || 'expense';
+
+        if (kind === 'expense') {
+          if (tx.status === 'pending' || tx.amount === null || tx.amount === undefined) {
+            pendingCount++;
+            return;
+          }
+          const amt = Number(tx.amount) || 0;
+          totalExpense += amt;
+          if ((tx.date || '').startsWith(currentMonth)) {
+            monthExpense += amt;
+          }
+          if (tx.payer === 'Benson') bensonPaid += amt;
+          else if (tx.payer === '佩筠') peiyunPaid += amt;
+
+          const shares = calculateShares(tx);
+          bensonShare += shares.bensonShare;
+          peiyunShare += shares.peiyunShare;
+        } else if (kind === 'repayment' && tx.status === 'active') {
+          const amt = Number(tx.amount) || 0;
+          if (tx.payer === 'Benson' && tx.payee === '佩筠') {
+            bensonRepaidToPeiyun += amt;
+          } else if (tx.payer === '佩筠' && tx.payee === 'Benson') {
+            peiyunRepaidToBenson += amt;
+          }
+        }
+      });
+
+      const bensonNet = Math.round(((bensonPaid - bensonShare) + bensonRepaidToPeiyun - peiyunRepaidToBenson) * 10) / 10;
+      let debtor = null;
+      let creditor = null;
+      let unsettledAmount = 0;
+
+      if (bensonNet > 0) {
+        debtor = '佩筠';
+        creditor = 'Benson';
+        unsettledAmount = bensonNet;
+      } else if (bensonNet < 0) {
+        debtor = 'Benson';
+        creditor = '佩筠';
+        unsettledAmount = Math.abs(bensonNet);
+      }
+
+      return {
+        monthExpense,
+        totalExpense,
+        bensonPaid,
+        peiyunPaid,
+        bensonShare,
+        peiyunShare,
+        debtor,
+        creditor,
+        unsettledAmount,
+        pendingCount
+      };
+    }
+
+    // ---------- 7. 自然語言記帳解析 ----------
+    function parseNaturalLanguage(rawInput, defaultDate = null) {
+      const text = rawInput.trim();
+      if (!text) {
+        return { ok: false, error: '請輸入記帳內容（例如：晚餐 850 Benson 付）' };
+      }
+
+      // 還款語句：「Benson 還給 佩筠 500」
+      const repayRegex = /^(佩筠|Benson|benson|我|你)\s*(?:還給|還)\s*(佩筠|Benson|benson|我|你)\s*(\d+(?:\.\d+)?)\s*(?:元)?$/i;
+      const repayMatch = text.match(repayRegex);
+      if (repayMatch) {
+        const payer = resolvePersonKeyword(repayMatch[1]);
+        const payee = resolvePersonKeyword(repayMatch[2]);
+        const amount = Number(repayMatch[3]);
+        if (payer === payee) {
+          return { ok: false, error: '還款人與收款人不能為同一人' };
+        }
+        return {
+          ok: true,
+          recordType: 'repayment',
+          payer,
+          payee,
+          amount,
+          date: defaultDate || getTaipeiTodayStr()
+        };
+      }
+
+      let working = text;
+      const todayStr = getTaipeiTodayStr();
+      let parsedDate = defaultDate || todayStr;
+
+      // 日期解析
+      if (/(?:^|\s)前天(?=\s|$)/.test(working)) {
+        parsedDate = shiftDateStr(todayStr, -2);
+        working = working.replace(/(?:^|\s)前天(?=\s|$)/, ' ');
+      } else if (/(?:^|\s)昨天(?=\s|$)/.test(working)) {
+        parsedDate = shiftDateStr(todayStr, -1);
+        working = working.replace(/(?:^|\s)昨天(?=\s|$)/, ' ');
+      } else if (/(?:^|\s)今天(?=\s|$)/.test(working)) {
+        parsedDate = todayStr;
+        working = working.replace(/(?:^|\s)今天(?=\s|$)/, ' ');
+      } else {
+        const fullDateMatch = working.match(/\b(20\d{2})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/);
+        if (fullDateMatch) {
+          parsedDate = `${fullDateMatch[1]}-${fullDateMatch[2].padStart(2, '0')}-${fullDateMatch[3].padStart(2, '0')}`;
+          working = working.replace(fullDateMatch[0], ' ');
+        } else {
+          const shortDateMatch = working.match(/(?:^|\s)(\d{1,2})[\/\-](\d{1,2})(?=\s|$)/);
+          if (shortDateMatch) {
+            const m = Number(shortDateMatch[1]);
+            const d = Number(shortDateMatch[2]);
+            if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+              parsedDate = `${todayStr.slice(0, 4)}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+              working = working.replace(shortDateMatch[0], ' ');
+            }
+          }
+        }
+      }
+
+      // 分攤模式
+      let splitType = 'equal';
+      if (/(全算對方的|全算對方|幫對方付|對方全額負擔|代墊)/.test(working)) {
+        splitType = 'other_only';
+        working = working.replace(/(全算對方的|全算對方|幫對方付|對方全額負擔|代墊)/g, ' ');
+      } else if (/(自己付|算自己的|個人消費)/.test(working)) {
+        splitType = 'payer_only';
+        working = working.replace(/(自己付|算自己的|個人消費)/g, ' ');
+      } else if (/(一人一半|平分|兩人平分|均分)/.test(working)) {
+        splitType = 'equal';
+        working = working.replace(/(一人一半|平分|兩人平分|均分)/g, ' ');
+      }
+
+      // 付款人解析
+      let payer = currentUser || '佩筠';
+      const explicitPayerMatch = working.match(/(佩筠|Benson|benson|我|你)\s*(?:先付|付)/i);
+      if (explicitPayerMatch) {
+        payer = resolvePersonKeyword(explicitPayerMatch[1]);
+        working = working.replace(explicitPayerMatch[0], ' ');
+      } else {
+        const trailingPersonMatch = working.match(/(?:^|\s)(佩筠|Benson|benson)(?=\s|$)/i);
+        if (trailingPersonMatch) {
+          payer = resolvePersonKeyword(trailingPersonMatch[1]);
+          working = working.replace(trailingPersonMatch[0], ' ');
+        }
+      }
+
+      // 金額解析
+      const numberMatches = working.match(/\b\d+(?:\.\d+)?\b/g);
+      if (numberMatches && numberMatches.length > 1) {
+        return {
+          ok: false,
+          error: `偵測到多個數字（${numberMatches.join('、')}），請逐筆輸入以避免金額誤判。`
+        };
+      }
+
+      if (!numberMatches || numberMatches.length === 0) {
+        const rawTokens = working.split(/[\s,，、;；]+/).map(s => s.trim()).filter(Boolean);
+        if (rawTokens.length === 0) {
+          return { ok: false, error: '無法辨識消費項目名稱，請輸入品項（例如：超商 或 晚餐 850 Benson 付）' };
+        }
+        if (rawTokens.length > 1) {
+          return {
+            ok: false,
+            multiPending: true,
+            items: rawTokens,
+            date: parsedDate,
+            payer,
+            splitType
+          };
+        }
+        return {
+          ok: true,
+          recordType: 'expense',
+          title: rawTokens[0],
+          amount: null,
+          date: parsedDate,
+          payer,
+          splitType
+        };
+      }
+
+      const amount = Number(numberMatches[0]);
+      if (amount <= 0) {
+        return { ok: false, error: '金額必須大於 0（若金額未定請省略數字以建立待補）' };
+      }
+      working = working.replace(new RegExp(`\\b${numberMatches[0]}\\b(?:\\s*元)?`), ' ');
+      const title = working.replace(/\s+/g, ' ').trim();
+      if (!title) {
+        return { ok: false, error: '請補充消費項目名稱（例如：晚餐 850）' };
+      }
+
+      return {
+        ok: true,
+        recordType: 'expense',
+        title,
+        amount,
+        date: parsedDate,
+        payer,
+        splitType
+      };
+    }
+
+    function resolvePersonKeyword(token) {
+      const lower = token.toLowerCase();
+      const me = currentUser || '佩筠';
+      const other = me === '佩筠' ? 'Benson' : '佩筠';
+      if (lower === 'benson') return 'Benson';
+      if (token === '佩筠') return '佩筠';
+      if (token === '我') return me;
+      if (token === '你') return other;
+      return me;
+    }
+
+    function handleNaturalLanguageSubmit() {
+      const inputEl = document.getElementById('nlInput');
+      const raw = inputEl.value.trim();
+      hideNlFeedback();
+
+      const result = parseNaturalLanguage(raw);
+
+      if (!result.ok) {
+        if (result.multiPending) {
+          pendingMultiBatch = result;
+          document.getElementById('multiPendingSubTitle').textContent =
+            `${result.date} · ${result.payer} 付 · 共 ${result.items.length} 筆待補項目`;
+          document.getElementById('multiPendingList').innerHTML = result.items.map((item, idx) => `
+            <div class="p-3 rounded-2xl bg-amberBg/70 border border-amberText/30 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-amberText text-white text-xs font-bold flex items-center justify-center">${idx + 1}</span>
+                <span class="font-bold text-sm text-inkDeep">${escapeHtml(item)}</span>
+              </div>
+              <span class="text-xs font-bold text-amberText">待補金額</span>
+            </div>
+          `).join('');
+          openModal('multiPendingModal');
+          return;
+        }
+        showNlFeedback(result.error || '無法解析此筆輸入，請檢查後重試。', 'error');
+        return;
+      }
+
+      if (result.recordType === 'repayment') {
+        const validation = validateRepayment(result.payer, result.payee, result.amount);
+        if (!validation.valid) {
+          showNlFeedback(validation.message, 'error');
+          return;
+        }
+        const repayTx = {
+          id: generateId('repay'),
+          type: 'repayment',
+          status: 'active',
+          payer: result.payer,
+          payee: result.payee,
+          amount: result.amount,
+          date: result.date,
+          version: 1,
+          updatedAt: getTaipeiNowISO()
+        };
+        persistTransaction(repayTx);
+        appendAuditLog(`${currentUser} 新增還款：${result.payer} 還給 ${result.payee} ${result.amount}（${result.date}）`, result.date, repayTx.id);
+        inputEl.value = '';
+        showNlFeedback(`已記錄還款：${result.payer} 還給 ${result.payee} ${formatCurrency(result.amount)}`, 'success');
+        setTimeout(() => scrollToLatestBottom(true), 80);
+        return;
+      }
+
+      const isPending = result.amount === null;
+      const newTx = {
+        id: generateId('tx'),
+        type: 'expense',
+        status: isPending ? 'pending' : 'active',
+        title: result.title,
+        amount: result.amount,
+        date: result.date,
+        payer: result.payer,
+        splitType: result.splitType,
+        allocation: null,
+        category: '',
+        note: '',
+        filledHint: '',
+        version: 1,
+        updatedAt: getTaipeiNowISO()
+      };
+
+      persistTransaction(newTx);
+      const splitLabel = getSplitDisplayLabel(newTx.splitType, newTx.payer);
+      if (isPending) {
+        appendAuditLog(`${currentUser} 新增待補：${newTx.title}（${newTx.payer} 付；${newTx.date}）`, newTx.date, newTx.id);
+        showNlFeedback(`已建立待補：「${newTx.title}」（${newTx.payer} 付 · ${newTx.date}）`, 'warning');
+      } else {
+        appendAuditLog(`${currentUser} 新增：${newTx.title} ${newTx.amount}（${newTx.payer} 付；${newTx.date}）`, newTx.date, newTx.id);
+        showNlFeedback(`已記帳：${newTx.title} ${formatCurrency(newTx.amount)}（${newTx.payer} 付 · ${splitLabel}）`, 'success');
+      }
+      inputEl.value = '';
+      setTimeout(() => scrollToLatestBottom(true), 80);
+    }
+
+    function confirmCreateMultiPending() {
+      closeModal('multiPendingModal');
+      if (!pendingMultiBatch) return;
+      const { items, date, payer, splitType } = pendingMultiBatch;
+      pendingMultiBatch = null;
+
+      items.forEach(itemTitle => {
+        const tx = {
+          id: generateId('tx'),
+          type: 'expense',
+          status: 'pending',
+          title: itemTitle,
+          amount: null,
+          date,
+          payer,
+          splitType,
+          allocation: null,
+          category: '',
+          note: '',
+          filledHint: '',
+          version: 1,
+          updatedAt: getTaipeiNowISO()
+        };
+        persistTransaction(tx);
+      });
+
+      appendAuditLog(`${currentUser} 批次建立 ${items.length} 筆待補：${items.join('、')}（${payer} 付；${date}）`, date);
+      document.getElementById('nlInput').value = '';
+      showToast(`已建立 ${items.length} 筆待補項目`);
+    }
+
+    function showNlFeedback(msg, type = 'success') {
+      const banner = document.getElementById('nlFeedbackBanner');
+      const textEl = document.getElementById('nlFeedbackText');
+      banner.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-mintBg', 'text-mintText', 'bg-amberBg', 'text-amberText');
+      if (type === 'error') banner.classList.add('bg-red-50', 'text-red-700');
+      else if (type === 'warning') banner.classList.add('bg-amberBg', 'text-amberText');
+      else banner.classList.add('bg-mintBg', 'text-mintText');
+      textEl.textContent = msg;
+    }
+
+    function hideNlFeedback() {
+      document.getElementById('nlFeedbackBanner').classList.add('hidden');
+    }
+
+    // ---------- 8. Windows 標準風格安全計算機 (無 eval，上方顯示完整算式 + 下方自動縮放結果) ----------
+    let calcTokens = [];
+    let calcCurrentStr = '0';
+    let calcLastFormula = '';
+    let calcJustEvaluated = false;
+
+    const CALC_OP_SYMBOL = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+    function openCalculatorModal() {
+      updateCalcScreen();
+      openModal('calculatorModal');
+    }
+    function closeCalculatorModal() { closeModal('calculatorModal'); }
+
+    function formatDisplayTokens(tokens) {
+      return tokens.map(t => CALC_OP_SYMBOL[t] || t).join(' ');
+    }
+
+    function updateCalcScreen() {
+      const exprEl = document.getElementById('calcExpression');
+      const dispEl = document.getElementById('calcDisplay');
+
+      if (calcJustEvaluated && calcLastFormula) {
+        exprEl.textContent = calcLastFormula;
+      } else if (calcTokens.length > 0) {
+        exprEl.textContent = formatDisplayTokens(calcTokens);
+      } else {
+        exprEl.textContent = '';
+      }
+
+      dispEl.textContent = calcCurrentStr;
+      // 長數字自動縮放字級，避免撐破顯示框
+      const len = calcCurrentStr.length;
+      dispEl.classList.remove('text-[28px]', 'text-[22px]', 'text-[18px]');
+      if (len > 14) dispEl.classList.add('text-[18px]');
+      else if (len > 10) dispEl.classList.add('text-[22px]');
+      else dispEl.classList.add('text-[28px]');
+    }
+
+    function calcDigit(d) {
+      if (calcCurrentStr === '錯誤 (除以零)') calcClear();
+      if (calcJustEvaluated) {
+        calcTokens = [];
+        calcLastFormula = '';
+        calcCurrentStr = d;
+        calcJustEvaluated = false;
+      } else if (calcCurrentStr === '0') {
+        calcCurrentStr = d;
+      } else if (calcCurrentStr.length < 15) {
+        calcCurrentStr += d;
+      }
+      updateCalcScreen();
+    }
+
+    function calcDecimal() {
+      if (calcCurrentStr === '錯誤 (除以零)') calcClear();
+      if (calcJustEvaluated) {
+        calcTokens = [];
+        calcLastFormula = '';
+        calcCurrentStr = '0.';
+        calcJustEvaluated = false;
+      } else if (!calcCurrentStr.includes('.')) {
+        calcCurrentStr += '.';
+      }
+      updateCalcScreen();
+    }
+
+    function calcBackspace() {
+      if (calcCurrentStr === '錯誤 (除以零)' || calcJustEvaluated) {
+        calcClear();
+        return;
+      }
+      calcCurrentStr = calcCurrentStr.length > 1 ? calcCurrentStr.slice(0, -1) : '0';
+      updateCalcScreen();
+    }
+
+    function calcClear() {
+      calcTokens = [];
+      calcCurrentStr = '0';
+      calcLastFormula = '';
+      calcJustEvaluated = false;
+      updateCalcScreen();
+    }
+
+    function calcOperator(op) {
+      if (calcCurrentStr === '錯誤 (除以零)') return;
+      if (calcJustEvaluated) {
+        calcLastFormula = '';
+        calcTokens = [calcCurrentStr, op];
+        calcCurrentStr = '0';
+        calcJustEvaluated = false;
+      } else {
+        calcTokens.push(calcCurrentStr, op);
+        calcCurrentStr = '0';
+      }
+      updateCalcScreen();
+    }
+
+    function evaluatePrecedence(tokens) {
+      if (tokens.length === 0) return 0;
+      const pass1 = [Number(tokens[0])];
+      for (let i = 1; i < tokens.length; i += 2) {
+        const op = tokens[i];
+        const nextNum = Number(tokens[i + 1]);
+        if (op === '*') pass1[pass1.length - 1] *= nextNum;
+        else if (op === '/') {
+          if (nextNum === 0) throw new Error('DIV_ZERO');
+          pass1[pass1.length - 1] /= nextNum;
+        } else {
+          pass1.push(op, nextNum);
+        }
+      }
+      let result = pass1[0];
+      for (let i = 1; i < pass1.length; i += 2) {
+        if (pass1[i] === '+') result += pass1[i + 1];
+        else if (pass1[i] === '-') result -= pass1[i + 1];
+      }
+      return Math.round(result * 100) / 100;
+    }
+
+    function calcEquals() {
+      if (calcCurrentStr === '錯誤 (除以零)') return;
+      const fullTokens = [...calcTokens, calcCurrentStr];
+      try {
+        const res = evaluatePrecedence(fullTokens);
+        calcLastFormula = fullTokens.length > 1 ? `${formatDisplayTokens(fullTokens)} =` : '';
+        calcTokens = [];
+        calcCurrentStr = String(res);
+        calcJustEvaluated = true;
+      } catch (e) {
+        calcLastFormula = `${formatDisplayTokens(fullTokens)} =`;
+        calcTokens = [];
+        calcCurrentStr = '錯誤 (除以零)';
+        calcJustEvaluated = true;
+      }
+      updateCalcScreen();
+    }
+
+    function applyCalcToInput() {
+      if (calcCurrentStr === '錯誤 (除以零)') {
+        showToast('計算結果錯誤，無法帶入');
+        return;
+      }
+      if (calcTokens.length > 0 && !calcJustEvaluated) {
+        calcEquals();
+        if (calcCurrentStr === '錯誤 (除以零)') return;
+      }
+      const val = Number(calcCurrentStr);
+      if (isNaN(val) || val <= 0) {
+        showToast('請先計算出大於 0 的金額');
+        return;
+      }
+      const nlInput = document.getElementById('nlInput');
+      const existing = nlInput.value.trim();
+      if (!existing) {
+        nlInput.value = `${val}`;
+      } else if (/\b\d+(?:\.\d+)?\b/.test(existing)) {
+        nlInput.value = existing.replace(/\b\d+(?:\.\d+)?\b/, `${val}`);
+      } else {
+        nlInput.value = `${existing} ${val}`;
+      }
+      closeCalculatorModal();
+      nlInput.focus();
+      showToast(`已帶入金額 NT$ ${val}（保留原項目文字，請確認後送出）`);
+    }
+
+    // ---------- 9. 還款管理（新增與修改還款紀錄皆執行超額與方向防呆） ----------
+    function validateRepayment(payer, payee, amount, excludeTxId = null) {
+      const summary = computeLedgerSummary(excludeTxId);
+      if (summary.unsettledAmount <= 0 || !summary.debtor) {
+        return { valid: false, message: '目前雙方已完全結清，不得新增或保留此還款。' };
+      }
+      if (payer !== summary.debtor || payee !== summary.creditor) {
+        return { valid: false, message: `還款方向不符：目前應由「${summary.debtor}」還款給「${summary.creditor}」。` };
+      }
+      if (amount <= 0) {
+        return { valid: false, message: '還款金額必須大於 0。' };
+      }
+      if (amount > summary.unsettledAmount) {
+        return { valid: false, message: `超過未結清上限（最多可還 ${formatCurrency(summary.unsettledAmount)}）。` };
+      }
+      return { valid: true };
+    }
+
+    function openRepayModal(presetDate = null) {
+      const summary = computeLedgerSummary();
+      const notice = document.getElementById('repayStatusNotice');
+      const submitBtn = document.getElementById('repaySubmitBtn');
+      const payerInput = document.getElementById('repayPayerInput');
+      const payeeInput = document.getElementById('repayPayeeInput');
+      const amountInput = document.getElementById('repayAmountInput');
+      const dateInput = document.getElementById('repayDateInput');
+
+      document.getElementById('repayModalTitle').textContent = '記一筆還款';
+      document.getElementById('repayEditId').value = '';
+      document.getElementById('repayEditVersion').value = '0';
+      document.getElementById('repayConflictAlertBox').classList.add('hidden');
+      document.getElementById('repayDeleteBtn').classList.add('hidden');
+      submitBtn.textContent = '確認還款';
+
+      dateInput.value = presetDate || getTaipeiTodayStr();
+
+      if (summary.unsettledAmount <= 0 || !summary.debtor) {
+        notice.className = 'p-3.5 rounded-2xl mb-4 text-xs bg-mintBg text-mintText font-bold';
+        notice.textContent = '目前雙方帳務已完全結清，無需新增還款！';
+        payerInput.value = '—';
+        payeeInput.value = '—';
+        amountInput.value = '';
+        amountInput.disabled = true;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-40', 'cursor-not-allowed');
+      } else {
+        notice.className = 'p-3.5 rounded-2xl mb-4 text-xs bg-iconBtnBg text-inkDeep border border-capoo/30';
+        notice.innerHTML = `目前 <strong>${summary.debtor}</strong> 要給 <strong>${summary.creditor}</strong>，最高可還款金額為 <strong class="text-mintText">${formatCurrency(summary.unsettledAmount)}</strong>。`;
+        payerInput.value = summary.debtor;
+        payeeInput.value = summary.creditor;
+        amountInput.value = summary.unsettledAmount;
+        amountInput.max = summary.unsettledAmount;
+        amountInput.disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+      }
+      openModal('repayModal');
+    }
+
+    function openEditRepayModal(txId) {
+      const tx = transactions.find(t => t.id === txId && t.type === 'repayment');
+      if (!tx) return;
+
+      // 排除此筆原還款後，計算當下最高可還款上限
+      const summary = computeLedgerSummary(tx.id);
+      const notice = document.getElementById('repayStatusNotice');
+      const submitBtn = document.getElementById('repaySubmitBtn');
+      const payerInput = document.getElementById('repayPayerInput');
+      const payeeInput = document.getElementById('repayPayeeInput');
+      const amountInput = document.getElementById('repayAmountInput');
+      const dateInput = document.getElementById('repayDateInput');
+
+      document.getElementById('repayModalTitle').textContent = '修改還款紀錄';
+      document.getElementById('repayEditId').value = tx.id;
+      document.getElementById('repayEditVersion').value = String(tx.version || 1);
+      document.getElementById('repayConflictAlertBox').classList.add('hidden');
+      document.getElementById('repayDeleteBtn').classList.remove('hidden');
+      submitBtn.textContent = '儲存還款修改';
+
+      payerInput.value = tx.payer;
+      payeeInput.value = tx.payee;
+      amountInput.value = tx.amount;
+      dateInput.value = tx.date || getTaipeiTodayStr();
+
+      if (summary.unsettledAmount <= 0 || !summary.debtor) {
+        notice.className = 'p-3.5 rounded-2xl mb-4 text-xs bg-amberBg text-amberText font-bold';
+        notice.textContent = '扣除本筆還款後目前並無未結清餘額，建議直接撤銷或刪除此筆還款。';
+        amountInput.disabled = true;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-40', 'cursor-not-allowed');
+      } else {
+        notice.className = 'p-3.5 rounded-2xl mb-4 text-xs bg-iconBtnBg text-inkDeep border border-capoo/30';
+        notice.innerHTML = `修改此筆還款（<strong>${tx.payer}</strong> 還給 <strong>${tx.payee}</strong>），目前未結清上限為 <strong class="text-mintText">${formatCurrency(summary.unsettledAmount)}</strong>。`;
+        amountInput.max = summary.unsettledAmount;
+        amountInput.disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+      }
+
+      openModal('repayModal');
+    }
+
+    function reloadLatestIntoRepayForm() {
+      const txId = document.getElementById('repayEditId').value;
+      if (!txId) return;
+      openEditRepayModal(txId);
+      showToast('已重新載入最新還款紀錄，請確認後再儲存');
+    }
+
+    function triggerDeleteRepayFromModal() {
+      const txId = document.getElementById('repayEditId').value;
+      if (!txId) return;
+      closeModal('repayModal');
+      deleteTransactionPermanently(txId);
+    }
+
+    function submitRepayForm(e) {
+      e.preventDefault();
+      const editId = document.getElementById('repayEditId').value;
+      const loadedVersion = Number(document.getElementById('repayEditVersion').value);
+      const payer = document.getElementById('repayPayerInput').value;
+      const payee = document.getElementById('repayPayeeInput').value;
+      const amount = Number(document.getElementById('repayAmountInput').value);
+      const date = document.getElementById('repayDateInput').value;
+
+      const check = validateRepayment(payer, payee, amount, editId || null);
+      if (!check.valid) {
+        showToast(check.message);
+        return;
+      }
+
+      if (!editId) {
+        const repayTx = {
+          id: generateId('repay'),
+          type: 'repayment',
+          status: 'active',
+          payer,
+          payee,
+          amount,
+          date,
+          version: 1,
+          updatedAt: getTaipeiNowISO()
+        };
+
+        persistTransaction(repayTx);
+        appendAuditLog(`${currentUser} 新增還款：${payer} 還給 ${payee} ${amount}（${date}）`, date, repayTx.id);
+        closeModal('repayModal');
+        showToast(`已記錄還款 ${formatCurrency(amount)}`);
+        return;
+      }
+
+      const latestTx = transactions.find(t => t.id === editId);
+      if (!latestTx) {
+        showToast('找不到原始還款紀錄（可能已被另一方刪除）');
+        closeModal('repayModal');
+        return;
+      }
+      if ((latestTx.version || 1) !== loadedVersion) {
+        document.getElementById('repayConflictAlertBox').classList.remove('hidden');
+        document.getElementById('repayConflictDetailText').textContent =
+          `偵測到版本差異（您開啟時為 v${loadedVersion}，目前最新為 v${latestTx.version}）。請先載入最新資料確認！`;
+        return;
+      }
+
+      const updatedRepay = {
+        ...latestTx,
+        payer,
+        payee,
+        amount,
+        date,
+        version: (latestTx.version || 1) + 1,
+        updatedAt: getTaipeiNowISO()
+      };
+
+      persistTransaction(updatedRepay);
+      appendAuditLog(
+        `${currentUser} 修改還款：${latestTx.payer} 還給 ${latestTx.payee} ${latestTx.amount}（${latestTx.date}） → ${amount}（${date}）`,
+        date,
+        updatedRepay.id
+      );
+      closeModal('repayModal');
+      showToast(`已修改還款並重算結算`);
+    }
+
+    // ---------- 10. 迷你小月曆與待補清單視窗 ----------
+    function toggleCalendarPanel() {
+      isCalendarOpen = !isCalendarOpen;
+      document.getElementById('calendarPanel').classList.toggle('hidden', !isCalendarOpen);
+      if (isCalendarOpen) renderCalendar();
+    }
+
+    function changeCalendarMonth(delta) {
+      calMonth += delta;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      else if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderCalendar();
+    }
+
+    function jumpCalendarToday() {
+      const today = getTaipeiTodayStr();
+      const [y, m] = today.split('-').map(Number);
+      calYear = y;
+      calMonth = m - 1;
+      selectedCalDate = today;
+      renderCalendar();
+    }
+
+    function selectCalendarDate(dateStr) {
+      selectedCalDate = dateStr;
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const ymPrefix = `${calYear}-${String(calMonth + 1).padStart(2, '0')}`;
+      document.getElementById('calendarMonthTitle').textContent = `${calYear}年 ${calMonth + 1}月`;
+
+      const monthActiveTxs = transactions.filter(t =>
+        (t.date || '').startsWith(ymPrefix) && t.status !== 'voided'
+      );
+      const monthTotalExp = monthActiveTxs
+        .filter(t => (t.type || 'expense') === 'expense' && t.status === 'active')
+        .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const activeDaysCount = new Set(monthActiveTxs.map(t => t.date)).size;
+      document.getElementById('calendarMonthStats').textContent =
+        `該月支出 ${formatCurrency(monthTotalExp)} · 記帳 ${activeDaysCount} 天`;
+
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+
+      const firstDayWeekday = new Date(calYear, calMonth, 1).getDay();
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const todayStr = getTaipeiTodayStr();
+
+      for (let i = 0; i < firstDayWeekday; i++) {
+        grid.innerHTML += `<div class="h-12"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${ymPrefix}-${String(d).padStart(2, '0')}`;
+        const dayTxs = transactions.filter(t => t.date === dateStr && t.status !== 'voided');
+        const hasExpense = dayTxs.some(t => (t.type || 'expense') === 'expense' && t.status === 'active');
+        const hasRepay = dayTxs.some(t => t.type === 'repayment' && t.status === 'active');
+        const hasPending = dayTxs.some(t => (t.type || 'expense') === 'expense' && t.status === 'pending');
+
+        const isSelected = dateStr === selectedCalDate;
+        const isToday = dateStr === todayStr;
+
+        const btnClass = isSelected
+          ? 'bg-capoo text-white font-bold shadow-xs'
+          : isToday
+            ? 'bg-kuromi/20 text-kuromiDark font-bold border border-kuromi/50'
+            : 'hover:bg-cream text-inkDeep';
+
+        grid.innerHTML += `
+          <button onclick="selectCalendarDate('${dateStr}')" class="touch-target h-12 rounded-2xl flex flex-col items-center justify-center transition ${btnClass}">
+            <span class="text-xs font-num">${d}</span>
+            <span class="flex items-center gap-0.5 mt-1 h-1.5">
+              ${hasExpense ? '<i class="w-1.5 h-1.5 rounded-full bg-capooAvatar"></i>' : ''}
+              ${hasRepay ? '<i class="w-1.5 h-1.5 rounded-full bg-mintText"></i>' : ''}
+              ${hasPending ? '<i class="w-1.5 h-1.5 rounded-full bg-amberAccent"></i>' : ''}
+            </span>
+          </button>
+        `;
+      }
+
+      renderCalendarDayDetail();
+    }
+
+    function renderCalendarDayDetail() {
+      const container = document.getElementById('calendarDayDetail');
+      // 顯示當日所有支出與還款（包含已撤銷紀錄，方便使用者在月曆中直接復原或修改）
+      const dayTxs = transactions.filter(t => t.date === selectedCalDate);
+      const expenses = dayTxs.filter(t => (t.type || 'expense') === 'expense' && t.status !== 'pending');
+      const repayments = dayTxs.filter(t => t.type === 'repayment');
+      const pendings = dayTxs.filter(t => (t.type || 'expense') === 'expense' && t.status === 'pending');
+
+      const dayExpTotal = expenses
+        .filter(t => t.status === 'active')
+        .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const dayRepayTotal = repayments
+        .filter(t => t.status === 'active')
+        .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+
+      let listHtml = '';
+      if (expenses.length === 0 && repayments.length === 0 && pendings.length === 0) {
+        listHtml = `<p class="text-xs text-inkLight text-center py-3">當日尚無紀錄，可點擊下方按鈕直接補登。</p>`;
+      } else {
+        listHtml = `<div class="space-y-2 mt-2.5">
+          ${expenses.map(t => {
+            const isVoided = t.status === 'voided' || t.voided === true;
+            return `
+              <div class="bg-cream px-3.5 py-2.5 rounded-2xl border border-cardBorder ${isVoided ? 'opacity-60' : ''}">
+                <div class="flex items-center justify-between gap-2 text-xs">
+                  <div class="min-w-0 truncate">
+                    <span class="font-bold text-inkDeep ${isVoided ? 'line-through text-inkLight' : ''}">${escapeHtml(t.title)}</span>
+                    <span class="text-inkLight ml-1">(${t.payer} 付 · ${getSplitDisplayLabel(t.splitType, t.payer)})</span>
+                  </div>
+                  <span class="font-bold text-inkDeep font-num shrink-0 ${isVoided ? 'line-through text-inkLight' : ''}">${formatCurrency(t.amount)}</span>
+                </div>
+                <div class="mt-2 pt-1.5 border-t border-cardBorder/80 flex items-center justify-end gap-3 text-[11.5px] font-bold">
+                  ${!isVoided ? `
+                    <button type="button" onclick="openEditTxModal('${t.id}', false)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-iconBtnBg text-capooDark border border-cardBorder transition">
+                      ✎ 修改
+                    </button>
+                  ` : ''}
+                  <button type="button" onclick="toggleVoidTransaction('${t.id}')" class="px-2.5 py-1 rounded-lg ${isVoided ? 'bg-mintBg text-mintText' : 'bg-white hover:bg-red-50 text-inkLight hover:text-red-500 border border-cardBorder'} transition">
+                    ${isVoided ? '↺ 復原' : '🗑 撤銷'}
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+
+          ${repayments.map(t => {
+            const isVoided = t.status === 'voided' || t.voided === true;
+            return `
+              <div class="bg-mintBg/80 px-3.5 py-2.5 rounded-2xl border border-mintText/20 ${isVoided ? 'opacity-60' : ''}">
+                <div class="flex items-center justify-between gap-2 text-xs">
+                  <span class="font-bold text-mintText ${isVoided ? 'line-through' : ''}">${t.payer} 還給 ${t.payee}</span>
+                  <span class="font-bold text-mintText font-num shrink-0 ${isVoided ? 'line-through' : ''}">${formatCurrency(t.amount)}</span>
+                </div>
+                <div class="mt-2 pt-1.5 border-t border-mintText/15 flex items-center justify-end gap-3 text-[11.5px] font-bold">
+                  ${!isVoided ? `
+                    <button type="button" onclick="openEditRepayModal('${t.id}')" class="px-2.5 py-1 rounded-lg bg-white/90 hover:bg-white text-mintText border border-mintText/20 transition">
+                      ✎ 修改
+                    </button>
+                  ` : ''}
+                  <button type="button" onclick="toggleVoidTransaction('${t.id}')" class="px-2.5 py-1 rounded-lg bg-white/90 hover:bg-white text-mintText border border-mintText/20 transition">
+                    ${isVoided ? '↺ 復原' : '🗑 撤銷'}
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>`;
+      }
+
+      container.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+          <div class="font-bold text-xs text-inkDeep">${selectedCalDate} 當日帳務</div>
+          ${pendings.length > 0 ? `
+            <button type="button" onclick="openPendingListModal('${selectedCalDate}')" class="px-3 py-1.5 rounded-full bg-amberBg text-amberText text-xs font-bold">
+              待補 ${pendings.length} 筆 ▸
+            </button>
+          ` : ''}
+        </div>
+        <div class="flex items-center gap-3 text-[11px] text-inkLight">
+          <span>支出：<strong class="text-inkDeep font-num">${formatCurrency(dayExpTotal)}</strong></span>
+          <span>還款：<strong class="text-mintText font-num">${formatCurrency(dayRepayTotal)}</strong></span>
+        </div>
+        ${listHtml}
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <button type="button" onclick="openCreateExpenseForDate('${selectedCalDate}')" class="touch-target py-2 rounded-2xl bg-capoo text-white text-xs font-bold shadow-xs">
+            + 新增支出
+          </button>
+          <button type="button" onclick="openRepayModal('${selectedCalDate}')" class="touch-target py-2 rounded-2xl bg-mintBg text-mintText text-xs font-bold border border-mintText/20">
+            + 新增還款
+          </button>
+        </div>
+      `;
+    }
+
+    function renderPendingModalItems(pendings, emptyText) {
+      if (pendings.length === 0) {
+        return `<p class="text-xs text-inkLight text-center py-4">${emptyText}</p>`;
+      }
+      return pendings.map(item => `
+        <div class="p-3.5 rounded-2xl bg-amberBg/70 border border-amberText/30 space-y-2.5 transition">
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div class="font-bold text-sm text-inkDeep truncate">${escapeHtml(item.title)}</div>
+              <div class="text-xs text-inkLight mt-0.5">${item.payer} 付 · ${item.date} · ${getSplitDisplayLabel(item.splitType, item.payer)}</div>
+            </div>
+            <button type="button" onclick="selectPendingItemToFill('${item.id}')" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/90 hover:bg-white text-ink text-[11px] font-bold border border-cardBorder transition">
+              詳細修改
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="number" step="0.5" min="0.5" id="quickFillInput_${item.id}" onkeydown="if(event.key==='Enter') submitQuickFillPending('${item.id}')" placeholder="輸入補上金額 (NT$)" class="touch-target flex-1 px-3 rounded-xl bg-white border border-amberText/40 text-sm font-bold text-inkDeep font-num focus:outline-none focus:border-amberText" />
+            <button type="button" onclick="submitQuickFillPending('${item.id}')" class="touch-target px-4 rounded-xl bg-amberText hover:opacity-95 text-white text-xs font-bold shadow-xs shrink-0 transition">
+              ✓ 補上
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function submitQuickFillPending(txId) {
+      const inputEl = document.getElementById(`quickFillInput_${txId}`);
+      if (!inputEl) return;
+      const amt = Number(inputEl.value);
+      if (!amt || amt <= 0) {
+        showToast('請輸入大於 0 的金額');
+        inputEl.focus();
+        return;
+      }
+      const latestTx = transactions.find(t => t.id === txId);
+      if (!latestTx) {
+        showToast('找不到該筆待補項目');
+        return;
+      }
+      const nowIso = getTaipeiNowISO();
+      const timeStr = formatZhTimeStamp(nowIso);
+      const updatedTx = {
+        ...latestTx,
+        amount: amt,
+        status: 'active',
+        filledHint: `${currentUser} 於 ${timeStr} 補上金額`,
+        version: (latestTx.version || 1) + 1,
+        updatedAt: nowIso
+      };
+      persistTransaction(updatedTx);
+      appendAuditLog(`${currentUser} 修改：${latestTx.title} 待補 → ${latestTx.title} ${amt} （${latestTx.payer} 付；${latestTx.date}）`, latestTx.date, updatedTx.id);
+      closeModal('pendingListModal');
+      showToast(`已補上「${latestTx.title}」${formatCurrency(amt)} 並更新結算`);
+    }
+
+    function openPendingListModal(dateStr) {
+      const pendings = transactions.filter(t => t.date === dateStr && (t.type || 'expense') === 'expense' && t.status === 'pending');
+      document.getElementById('pendingModalTitle').textContent = `${dateStr} 待補項目（共 ${pendings.length} 筆）`;
+      const body = document.getElementById('pendingModalListBody');
+      body.innerHTML = renderPendingModalItems(pendings, '此日期已無待補項目。');
+      openModal('pendingListModal');
+    }
+
+    function openAllPendingListModal() {
+      const pendings = transactions
+        .filter(t => (t.type || 'expense') === 'expense' && t.status === 'pending')
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      document.getElementById('pendingModalTitle').textContent = `全部待補項目（共 ${pendings.length} 筆）`;
+      const body = document.getElementById('pendingModalListBody');
+      body.innerHTML = renderPendingModalItems(pendings, '目前沒有待補金額的項目 ✨');
+      openModal('pendingListModal');
+    }
+
+    function selectPendingItemToFill(txId) {
+      closeModal('pendingListModal');
+      openEditTxModal(txId, true);
+    }
+
+    // ---------- 11. 新增 / 編輯 / 補金額表單與版本衝突偵測 ----------
+    function toggleCustomAllocationBox() {
+      const splitVal = getRadioValue('txFormSplit');
+      const box = document.getElementById('customAllocationBox');
+      box.classList.toggle('hidden', splitVal !== 'custom');
+      if (splitVal === 'custom') syncCustomAllocationHint();
+    }
+
+    function syncCustomAllocationHint() {
+      const total = Number(document.getElementById('txFormAmountInput').value) || 0;
+      const hint = document.getElementById('customAllocSumHint');
+      hint.textContent = total > 0 ? `兩人合計須為 NT$ ${total}` : '請先輸入總金額';
+    }
+
+    function openCreateExpenseForDate(dateStr) {
+      document.getElementById('txFormTitle').textContent = `新增支出（${dateStr}）`;
+      document.getElementById('txFormId').value = '';
+      document.getElementById('txFormVersion').value = '0';
+      document.getElementById('txFormTitleInput').value = '';
+      document.getElementById('txFormAmountInput').value = '';
+      document.getElementById('txFormDateInput').value = dateStr;
+      document.getElementById('txFormCategoryInput').value = '';
+      document.getElementById('txFormNoteInput').value = '';
+      document.getElementById('customPeiyunInput').value = '';
+      document.getElementById('customBensonInput').value = '';
+      document.getElementById('txFormNlQuickBox').classList.remove('hidden');
+      document.getElementById('txFormNlInput').value = '';
+      document.getElementById('conflictAlertBox').classList.add('hidden');
+      document.getElementById('txFormDeleteBtn').classList.add('hidden');
+
+      setRadioValue('txFormPayer', currentUser || '佩筠');
+      setRadioValue('txFormSplit', 'equal');
+      toggleCustomAllocationBox();
+      openModal('txFormModal');
+    }
+
+    function parseIntoTxForm() {
+      const raw = document.getElementById('txFormNlInput').value.trim();
+      const targetDate = document.getElementById('txFormDateInput').value;
+      const res = parseNaturalLanguage(raw, targetDate);
+      if (!res.ok || res.recordType !== 'expense') {
+        showToast(res.error || '無法帶入支出欄位，請直接填寫表單');
+        return;
+      }
+      document.getElementById('txFormTitleInput').value = res.title;
+      document.getElementById('txFormAmountInput').value = res.amount !== null ? res.amount : '';
+      document.getElementById('txFormDateInput').value = res.date;
+      setRadioValue('txFormPayer', res.payer);
+      setRadioValue('txFormSplit', res.splitType);
+      toggleCustomAllocationBox();
+      showToast('已帶入欄位，請確認後儲存');
+    }
+
+    function openEditTxModal(txId, isFillingPending = false) {
+      const tx = transactions.find(t => t.id === txId);
+      if (!tx) return;
+
+      document.getElementById('txFormTitle').textContent = isFillingPending ? '補上金額' : '修改記帳內容';
+      document.getElementById('txFormId').value = tx.id;
+      document.getElementById('txFormVersion').value = String(tx.version || 1);
+      document.getElementById('txFormTitleInput').value = tx.title || '';
+      document.getElementById('txFormAmountInput').value = tx.amount !== null && tx.amount !== undefined ? tx.amount : '';
+      document.getElementById('txFormDateInput').value = tx.date || getTaipeiTodayStr();
+      document.getElementById('txFormCategoryInput').value = tx.category || '';
+      document.getElementById('txFormNoteInput').value = tx.note || '';
+      document.getElementById('txFormNlQuickBox').classList.add('hidden');
+      document.getElementById('conflictAlertBox').classList.add('hidden');
+      document.getElementById('txFormDeleteBtn').classList.remove('hidden');
+
+      setRadioValue('txFormPayer', tx.payer || '佩筠');
+      const normalizedSplit = normalizeSplitType(tx.splitType);
+      setRadioValue('txFormSplit', normalizedSplit);
+      if (normalizedSplit === 'custom' && tx.allocation) {
+        document.getElementById('customPeiyunInput').value = tx.allocation['佩筠'] ?? '';
+        document.getElementById('customBensonInput').value = tx.allocation['Benson'] ?? '';
+      } else {
+        document.getElementById('customPeiyunInput').value = '';
+        document.getElementById('customBensonInput').value = '';
+      }
+      toggleCustomAllocationBox();
+      openModal('txFormModal');
+      if (isFillingPending) {
+        setTimeout(() => document.getElementById('txFormAmountInput').focus(), 120);
+      }
+    }
+
+    function reloadLatestIntoTxForm() {
+      const txId = document.getElementById('txFormId').value;
+      if (!txId) return;
+      openEditTxModal(txId, false);
+      showToast('已重新載入最新紀錄內容，請確認後再儲存');
+    }
+
+    function submitTxForm(e) {
+      e.preventDefault();
+      const txId = document.getElementById('txFormId').value;
+      const loadedVersion = Number(document.getElementById('txFormVersion').value);
+      const title = document.getElementById('txFormTitleInput').value.trim();
+      const rawAmt = document.getElementById('txFormAmountInput').value.trim();
+      const amount = rawAmt === '' ? null : Number(rawAmt);
+      const date = document.getElementById('txFormDateInput').value;
+      const payer = getRadioValue('txFormPayer') || '佩筠';
+      const splitType = getRadioValue('txFormSplit') || 'equal';
+      const category = document.getElementById('txFormCategoryInput').value.trim();
+      const note = document.getElementById('txFormNoteInput').value.trim();
+
+      if (!title) {
+        showToast('請輸入消費項目名稱');
+        return;
+      }
+      if (amount !== null && amount <= 0) {
+        showToast('金額必須大於 0（若為待補請清空金額欄）');
+        return;
+      }
+
+      let allocation = null;
+      if (splitType === 'custom') {
+        if (amount === null) {
+          showToast('自訂金額分攤前請先填寫總金額');
+          return;
+        }
+        const pShare = Number(document.getElementById('customPeiyunInput').value) || 0;
+        const bShare = Number(document.getElementById('customBensonInput').value) || 0;
+        if (Math.abs((pShare + bShare) - amount) > 0.01) {
+          showToast(`佩筠 (${pShare}) + Benson (${bShare}) 必須等於總金額 ${amount}`);
+          return;
+        }
+        allocation = { '佩筠': pShare, 'Benson': bShare };
+      }
+
+      if (!txId) {
+        const newTx = {
+          id: generateId('tx'),
+          type: 'expense',
+          status: amount === null ? 'pending' : 'active',
+          title,
+          amount,
+          date,
+          payer,
+          splitType,
+          allocation,
+          category,
+          note,
+          filledHint: '',
+          version: 1,
+          updatedAt: getTaipeiNowISO()
+        };
+        persistTransaction(newTx);
+        appendAuditLog(
+          amount === null
+            ? `${currentUser} 新增待補：${title}（${payer} 付；${date}）`
+            : `${currentUser} 新增：${title} ${amount}（${payer} 付；${date}）`,
+          date,
+          newTx.id
+        );
+        closeModal('txFormModal');
+        showToast(`已新增：${title}`);
+        return;
+      }
+
+      const latestTx = transactions.find(t => t.id === txId);
+      if (!latestTx) {
+        showToast('找不到原始紀錄（可能已被另一方刪除）');
+        closeModal('txFormModal');
+        return;
+      }
+      if ((latestTx.version || 1) !== loadedVersion) {
+        document.getElementById('conflictAlertBox').classList.remove('hidden');
+        document.getElementById('conflictDetailText').textContent =
+          `偵測到版本差異（您開啟時為 v${loadedVersion}，目前最新為 v${latestTx.version}）。請先載入最新資料確認！`;
+        return;
+      }
+
+      const wasPending = latestTx.status === 'pending';
+      const nowIso = getTaipeiNowISO();
+      const timeStr = formatZhTimeStamp(nowIso);
+      const updatedTx = {
+        ...latestTx,
+        title,
+        amount,
+        status: amount === null ? 'pending' : 'active',
+        date,
+        payer,
+        splitType,
+        allocation,
+        category,
+        note,
+        filledHint: (wasPending && amount !== null) ? `${currentUser} 於 ${timeStr} 補上金額` : (latestTx.filledHint || ''),
+        version: (latestTx.version || 1) + 1,
+        updatedAt: nowIso
+      };
+
+      persistTransaction(updatedTx);
+      const oldDesc = `${latestTx.title} ${latestTx.amount !== null ? latestTx.amount : '待補'}`;
+      const newDesc = `${title} ${amount !== null ? amount : '待補'}`;
+      appendAuditLog(`${currentUser} 修改：${oldDesc} → ${newDesc} （${payer} 付；${date}）`, date, updatedTx.id);
+      closeModal('txFormModal');
+      showToast('已儲存修改並更新結算');
+    }
+
+    function triggerDeleteFromModal() {
+      const txId = document.getElementById('txFormId').value;
+      if (!txId) return;
+      closeModal('txFormModal');
+      deleteTransactionPermanently(txId);
+    }
+
+    // ---------- 12. 軟撤銷、一鍵復原與永久刪除 ----------
+    function toggleVoidTransaction(txId) {
+      const target = transactions.find(t => t.id === txId);
+      if (!target) return;
+      const isCurrentlyVoided = target.status === 'voided';
+      const label = target.type === 'repayment'
+        ? `${target.payer} 還給 ${target.payee} ${target.amount}`
+        : `${target.title}${target.amount !== null ? ' ' + target.amount : ' 待補'}`;
+
+      if (isCurrentlyVoided) {
+        const restoredStatus = (target.type !== 'repayment' && (target.amount === null || target.amount === undefined))
+          ? 'pending'
+          : 'active';
+        const updated = {
+          ...target,
+          status: restoredStatus,
+          version: (target.version || 1) + 1,
+          updatedAt: getTaipeiNowISO()
+        };
+        persistTransaction(updated);
+        appendAuditLog(`${currentUser} 復原：${label}（${target.date}）`, target.date, target.id);
+        showToast('已復原該筆紀錄並重算結算');
+        return;
+      }
+
+      openConfirmDialog(
+        '撤銷此筆紀錄',
+        `撤銷後卡片將以刪除線保留，不再納入支出統計與結算，隨時可一鍵「復原」。確定撤銷「${label}」嗎？`,
+        () => {
+          const updated = {
+            ...target,
+            status: 'voided',
+            version: (target.version || 1) + 1,
+            updatedAt: getTaipeiNowISO()
+          };
+          persistTransaction(updated);
+          appendAuditLog(`${currentUser} 撤銷：${label}（${target.date}）`, target.date, target.id);
+          showToast('已撤銷紀錄（可隨時點擊復原）');
+        }
+      );
+    }
+
+    function deleteTransactionPermanently(txId) {
+      const target = transactions.find(t => t.id === txId);
+      if (!target) return;
+      const label = target.type === 'repayment'
+        ? `${target.payer} 還給 ${target.payee} ${target.amount}`
+        : `${target.title}`;
+
+      openConfirmDialog(
+        '永久刪除紀錄（不可復原）',
+        `確定要永久刪除「${label}」嗎？刪除後資料將從帳本移除，僅保留操作歷史紀錄。`,
+        () => {
+          removeTransactionFromStore(txId);
+          appendAuditLog(`${currentUser} 永久刪除：${label}（${target.date}）`, target.date);
+          showToast('已永久刪除紀錄');
+        }
+      );
+    }
+
+    // ---------- 13. 搜尋與資料備份匯出 ----------
+    function toggleSearchPanel(forceState = null) {
+      isSearchOpen = forceState !== null ? forceState : !isSearchOpen;
+      document.getElementById('searchPanel').classList.toggle('hidden', !isSearchOpen);
+      if (isSearchOpen) document.getElementById('searchInput').focus();
+      else clearSearch();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      renderMainContent();
+    }
+
+    function togglePendingFilter(forceState = null) {
+      filterPendingOnly = forceState !== null ? forceState : !filterPendingOnly;
+      document.getElementById('pendingFilterBanner').classList.toggle('hidden', !filterPendingOnly);
+      if (filterPendingOnly && currentTab !== 'all') switchMainTab('all');
+      else renderMainContent();
+    }
+
+    function exportBackupJSON() {
+      const payload = {
+        app: '佩筠 × Benson 的小帳本',
+        exportedAt: getTaipeiNowISO(),
+        transactions,
+        logs
+      };
+      downloadBlob(JSON.stringify(payload, null, 2), `OurLedger_Backup_${getTaipeiTodayStr()}.json`, 'application/json');
+      showToast('已匯出完整帳本 JSON 備份');
+    }
+
+    function exportBackupCSV() {
+      const headers = ['日期', '類型', '項目名稱', '金額', '付款人', '收款人', '分攤模式', '分類', '狀態', '備註'];
+      const rows = transactions.map(t => [
+        t.date || '',
+        t.type === 'repayment' ? '還款' : '支出',
+        t.type === 'repayment' ? '還款沖銷' : (t.title || ''),
+        t.amount !== null && t.amount !== undefined ? t.amount : '待補',
+        t.payer || '',
+        t.payee || '',
+        t.type === 'repayment' ? '' : getSplitDisplayLabel(t.splitType, t.payer),
+        t.category || '',
+        t.status === 'voided' ? '已撤銷' : t.status === 'pending' ? '待補' : '有效',
+        t.note || ''
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+      const newlineChar = String.fromCharCode(10);
+      const bomChar = String.fromCharCode(0xFEFF);
+      const csvContent = bomChar + [headers.join(','), ...rows].join(newlineChar);
+      downloadBlob(csvContent, `OurLedger_Export_${getTaipeiTodayStr()}.csv`, 'text/csv;charset=utf-8;');
+      showToast('已匯出 CSV 試算表檔案');
+    }
+
+    function downloadBlob(content, filename, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function handleImportFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data.transactions)) {
+            showToast('備份檔格式無效，缺少 transactions 資料');
+            return;
+          }
+          openConfirmDialog(
+            '確認匯入並覆蓋現有資料？',
+            `此備份檔匯出於 ${data.exportedAt || '未知時間'}，包含 ${data.transactions.length} 筆交易紀錄。確定要覆蓋目前帳本資料嗎？`,
+            () => {
+              transactions = data.transactions;
+              logs = Array.isArray(data.logs) ? data.logs : [];
+              if (isFirebaseConnected && fbDb) {
+                const txMap = {};
+                transactions.forEach(t => { const { id, ...rest } = t; txMap[id] = rest; });
+                fbDb.ref('transactions').set(txMap);
+              } else {
+                saveLocalData(true);
+              }
+              appendAuditLog(`${currentUser} 匯入還原備份（共 ${transactions.length} 筆紀錄）`);
+              refreshAllUI();
+              closeModal('settingsModal');
+              showToast('已完成備份還原');
+            }
+          );
+        } catch (err) {
+          showToast('讀取 JSON 檔案失敗：' + err.message);
+        }
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    // ---------- 14. 畫面渲染 (100% 還原截圖之結算膠囊、對話卡片、右下角頭像與日誌氣泡) ----------
+    function toggleSettlementExpand() {
+      isSettlementExpanded = !isSettlementExpanded;
+      document.getElementById('settlementDetails').classList.toggle('hidden', !isSettlementExpanded);
+      document.getElementById('settlementExpandLabel').textContent = isSettlementExpanded ? '點擊收合收支明細' : '點擊展開收支與雙方負擔明細';
+      document.getElementById('settlementChevron').style.transform = isSettlementExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    function switchMainTab(tabName) {
+      currentTab = tabName;
+      const activeCls = 'touch-target h-10 rounded-full bg-white shadow-pill border border-[#E5EEF5] text-[13px] font-bold text-inkDeep flex items-center justify-center gap-1.5 transition';
+      const inactiveCls = 'touch-target h-10 rounded-full bg-white/80 hover:bg-white border border-[#EDF2F7] text-[13px] font-medium text-ink flex items-center justify-center gap-1.5 transition';
+
+      document.getElementById('tabBtn-all').className = tabName === 'all' ? activeCls : inactiveCls;
+      document.getElementById('tabBtn-repay').className = tabName === 'repay' ? activeCls : inactiveCls;
+      document.getElementById('tabBtn-summary').className = tabName === 'summary' ? activeCls : inactiveCls;
+
+      renderMainContent();
+    }
+
+    function refreshAllUI() {
+      renderSettlementHeader();
+      if (isCalendarOpen) renderCalendar();
+      renderMainContent();
+    }
+
+    function renderSettlementHeader() {
+      const s = computeLedgerSummary();
+      const headline = document.getElementById('settlementHeadline');
+
+      if (s.unsettledAmount <= 0 || !s.debtor) {
+        headline.innerHTML = `<span class="text-xl font-bold text-mintText">目前完全結清 ✨</span>`;
+      } else {
+        headline.innerHTML = `
+          <span class="text-[15px] font-bold text-inkDeep">${s.debtor}</span>
+          <span class="text-[13px] font-medium text-ink">要給</span>
+          <span class="text-[15px] font-bold text-inkDeep">${s.creditor}</span>
+          <span class="text-[28px] font-light text-capooAmount tracking-tight font-num ml-1 leading-none">${formatCurrency(s.unsettledAmount)}</span>
+        `;
+      }
+
+      document.getElementById('statMonthExpense').textContent = formatCurrency(s.monthExpense);
+      document.getElementById('statTotalExpense').textContent = formatCurrency(s.totalExpense);
+      document.getElementById('statBensonPaid').textContent = formatCurrency(s.bensonPaid);
+      document.getElementById('statPeiyunPaid').textContent = formatCurrency(s.peiyunPaid);
+      document.getElementById('statBensonShare').textContent = formatCurrency(s.bensonShare);
+      document.getElementById('statPeiyunShare').textContent = formatCurrency(s.peiyunShare);
+      document.getElementById('pendingCountText').textContent = s.pendingCount;
+    }
+
+    function renderMainContent() {
+      const container = document.getElementById('mainContentArea');
+      const keyword = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+
+      // 分頁：「明細」
+      if (currentTab === 'summary') {
+        const s = computeLedgerSummary();
+        const voidedList = transactions.filter(t => t.status === 'voided' || t.voided === true);
+        container.innerHTML = `
+          <div class="bg-white rounded-[24px] p-5 shadow-card border border-cardBorder space-y-3.5">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-inkDeep">帳務統計明細</h3>
+              <button onclick="copyLineSettlementReport()" class="px-3 py-1.5 rounded-full bg-iconBtnBg text-capooDark text-xs font-bold">複製 LINE 報告</button>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between py-2 border-b border-cardBorder">
+                <span class="text-inkLight">本月有效支出 (${getCurrentTaipeiYearMonth()})</span>
+                <span class="font-bold text-inkDeep font-num">${formatCurrency(s.monthExpense)}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-cardBorder">
+                <span class="text-inkLight">累計有效支出</span>
+                <span class="font-bold text-inkDeep font-num">${formatCurrency(s.totalExpense)}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-cardBorder">
+                <span class="text-capooDark font-bold">Benson 已付款金額</span>
+                <span class="font-bold text-inkDeep font-num">${formatCurrency(s.bensonPaid)}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-cardBorder">
+                <span class="text-capooDark font-bold">Benson 應負擔金額</span>
+                <span class="font-bold text-inkDeep font-num">${formatCurrency(s.bensonShare)}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-cardBorder">
+                <span class="text-kuromiDark font-bold">佩筠 已付款金額</span>
+                <span class="font-bold text-inkDeep font-num">${formatCurrency(s.peiyunPaid)}</span>
+              </div>
+              <div class="flex justify-between py-2">
+                <span class="text-kuromiDark font-bold">佩筠 應負擔金額</span>
+                <span class="font-bold text-inkDeep font-num">${formatCurrency(s.peiyunShare)}</span>
+              </div>
+            </div>
+          </div>
+
+          ${voidedList.length > 0 ? `
+            <div class="bg-white rounded-[24px] p-4 shadow-card border border-cardBorder space-y-2">
+              <div class="text-xs font-bold text-inkLight">已撤銷紀錄（共 ${voidedList.length} 筆，可點擊復原）</div>
+              ${voidedList.map(v => `
+                <div class="flex items-center justify-between text-xs bg-cream px-3 py-2 rounded-xl border border-cardBorder">
+                  <span class="line-through text-inkLight truncate">${escapeHtml(v.title || '還款')} (${formatCurrency(v.amount || 0)})</span>
+                  <button onclick="toggleVoidTransaction('${v.id}')" class="text-mintText font-bold underline shrink-0 ml-2">復原</button>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        `;
+        return;
+      }
+
+      // 依時間軸正序呈現對話流動感 (舊在上、新在下，對齊截圖 11月21日 -> 11月22日 順序)
+      let filtered = [...transactions].sort((a, b) => {
+        if (a.date !== b.date) return (a.date || '').localeCompare(b.date || '');
+        return (a.updatedAt || '').localeCompare(b.updatedAt || '');
+      });
+
+      if (currentTab === 'repay') {
+        filtered = filtered.filter(t => t.type === 'repayment');
+      } else if (filterPendingOnly) {
+        filtered = filtered.filter(t => (t.type || 'expense') === 'expense' && t.status === 'pending');
+      }
+
+      if (keyword) {
+        filtered = filtered.filter(t => {
+          const splitText = getSplitDisplayLabel(t.splitType, t.payer);
+          const statusText = t.status === 'pending' ? '待補' : t.status === 'voided' ? '已撤銷' : '';
+          const haystack = `${t.title || ''} ${t.amount || ''} ${t.date || ''} ${t.payer || ''} ${t.payee || ''} ${splitText} ${t.category || ''} ${t.note || ''} ${statusText}`.toLowerCase();
+          return haystack.includes(keyword);
+        });
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-[24px] p-8 text-center shadow-card border border-cardBorder">
+            <p class="text-sm font-bold text-inkDeep">目前還沒有符合的記帳紀錄</p>
+            <p class="text-xs text-inkLight mt-1">在底部輸入框打字（例如：晚餐 850 Benson 付）即可記帳！</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      let lastDatePill = '';
+
+      filtered.forEach(tx => {
+        const datePillText = formatChineseMonthDay(tx.date);
+        if (datePillText && datePillText !== lastDatePill) {
+          lastDatePill = datePillText;
+          html += `
+            <div class="flex items-center justify-center gap-2.5 my-2.5">
+              <span class="h-[1px] w-8 bg-[#E6EEF5]"></span>
+              <span class="px-3.5 py-1 rounded-full bg-datePill text-[11px] font-semibold text-ink tracking-wide">${datePillText}</span>
+              <span class="h-[1px] w-8 bg-[#E6EEF5]"></span>
+            </div>
+          `;
+        }
+
+        html += renderScreenshotChatCard(tx);
+
+        const relatedLogs = logs
+          .filter(l => l.afterTxId === tx.id)
+          .sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+        relatedLogs.forEach(logItem => {
+          html += renderLogBubble(logItem);
+        });
+      });
+
+      // 渲染未綁定特定卡片的獨立操作日誌
+      if (currentTab === 'all' && !filterPendingOnly && !keyword) {
+        const orphanLogs = logs.filter(l => !l.afterTxId).slice(0, 3);
+        orphanLogs.forEach(logItem => {
+          html += renderLogBubble(logItem);
+        });
+      }
+
+      container.innerHTML = html;
+    }
+
+    // 完全還原截圖之系統操作日誌氣泡
+    function renderLogBubble(logItem) {
+      const timeText = formatZhTimeStamp(logItem.timestamp);
+      return `
+        <div class="flex justify-center px-1">
+          <div class="w-full max-w-[94%] bg-logBubble/90 rounded-2xl px-3.5 py-2 text-[11px] text-ink leading-relaxed flex items-start gap-1.5">
+            <svg class="w-3.5 h-3.5 text-amberAccent shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+            </svg>
+            <span>${escapeHtml(logItem.message)} <span class="text-inkLight">・ ${timeText}</span></span>
+          </div>
+        </div>
+      `;
+    }
+
+    // 完全還原截圖之純白記帳對話卡片 + 右下角專屬頭像
+    function renderScreenshotChatCard(tx) {
+      const isVoided = tx.status === 'voided' || tx.voided === true;
+      const isPending = tx.status === 'pending';
+      const isRepay = tx.type === 'repayment';
+      const isBenson = tx.payer === 'Benson';
+      const avatarSvg = isBenson ? getCapooAvatarSVG(34) : getKuromiAvatarSVG(34);
+
+      if (isRepay) {
+        return `
+          <div class="flex items-end justify-end gap-2">
+            <article class="w-[84%] bg-mintBg rounded-[22px] p-3.5 shadow-card border border-mintText/25 ${isVoided ? 'opacity-55' : ''}">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="font-bold text-[15px] text-mintText ${isVoided ? 'line-through' : ''}">${tx.payer} 還給 ${tx.payee}</span>
+                <span class="font-bold text-[16px] text-mintText font-num shrink-0 ${isVoided ? 'line-through' : ''}">${formatCurrency(tx.amount)}</span>
+              </div>
+              <div class="flex items-center gap-2 mt-1.5 text-[11.5px] text-mintText/80">
+                <span>${tx.date}</span>
+                <span>·</span>
+                <span>${isVoided ? '已撤銷還款' : '還款沖銷'}</span>
+              </div>
+              <div class="mt-2.5 pt-2 border-t border-mintText/15 flex items-center gap-4 text-[12px] text-mintText font-medium">
+                ${!isVoided ? `
+                  <button onclick="openEditRepayModal('${tx.id}')" class="flex items-center gap-1 hover:underline py-0.5">
+                    <span>✎ 修改</span>
+                  </button>
+                ` : ''}
+                <button onclick="toggleVoidTransaction('${tx.id}')" class="flex items-center gap-1 hover:underline py-0.5">
+                  <span>${isVoided ? '↺ 復原' : '🗑 撤銷'}</span>
+                </button>
+              </div>
+            </article>
+            <div class="shrink-0 mb-0.5" title="${tx.payer}">${avatarSvg}</div>
+          </div>
+        `;
+      }
+
+      const payerBadgeClass = isBenson
+        ? 'bg-[#E5F2FA] text-capooDark'
+        : 'bg-[#F0E9F8] text-kuromiDark';
+      const splitText = getSplitDisplayLabel(tx.splitType, tx.payer);
+
+      return `
+        <div class="flex items-end justify-end gap-2">
+          <!-- 純白圓角卡片 (84% 寬度，兼顧對話氣泡感與品項文字舒展度) -->
+          <article class="w-[84%] bg-white rounded-[22px] p-3.5 shadow-card border ${isPending && !isVoided ? 'border-amberText/50' : 'border-cardBorder'} ${isVoided ? 'opacity-55 bg-gray-50' : ''}">
+            <!-- 第一列：左側大字粗體品項名稱 + 右側大字粗體金額 -->
+            <div class="flex items-baseline justify-between gap-2">
+              <h3 class="font-bold text-[15.5px] text-inkDeep break-words leading-snug ${isVoided ? 'line-through text-inkLight' : ''}">
+                ${escapeHtml(tx.title)}
+              </h3>
+              <div class="shrink-0 text-right">
+                ${isPending && !isVoided ? `
+                  <button onclick="openEditTxModal('${tx.id}', true)" class="px-3 py-1 rounded-full bg-amberBg text-amberText text-xs font-bold active:scale-95 transition">
+                    待補
+                  </button>
+                ` : `
+                  <span class="font-bold text-[16.5px] text-inkDeep font-num ${isVoided ? 'line-through text-inkLight' : ''}">${formatCurrency(tx.amount)}</span>
+                `}
+              </div>
+            </div>
+
+            <!-- 第二列：日曆圖示+日期 + 付款人膠囊 + 分攤方式 + 分類標籤 -->
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1.5 mt-1.5 text-[11.5px] text-inkLight">
+              <span class="inline-flex items-center gap-1 font-num">
+                <svg class="w-3.5 h-3.5 text-kuromi" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="3" />
+                  <path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                <span>${tx.date}</span>
+              </span>
+
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${payerBadgeClass}">
+                ${tx.payer} 付
+              </span>
+
+              <span class="text-ink font-medium">${splitText}</span>
+
+              ${tx.category ? `<span class="text-inkLight">${escapeHtml(tx.category)}</span>` : ''}
+            </div>
+
+            <!-- 第三列：補上金額或備註提示列 (橘色鉛筆圖示 + 暖橘色小字) -->
+            ${(tx.filledHint || tx.note) ? `
+              <div class="mt-2 flex items-start gap-1 text-[11px] text-amberAccent leading-snug">
+                <svg class="w-3.5 h-3.5 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+                </svg>
+                <span>${escapeHtml(tx.filledHint || tx.note)}</span>
+              </div>
+            ` : ''}
+
+            <!-- 第四列：底部左側並排【修改】與【撤銷】 -->
+            <div class="mt-2.5 pt-2 border-t border-cardBorder/60 flex items-center gap-4 text-[11.5px] text-inkLight font-medium">
+              ${!isVoided ? `
+                <button onclick="openEditTxModal('${tx.id}', ${isPending})" class="inline-flex items-center gap-1 hover:text-inkDeep py-0.5 transition">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+                  </svg>
+                  <span>修改</span>
+                </button>
+              ` : ''}
+
+              <button onclick="toggleVoidTransaction('${tx.id}')" class="inline-flex items-center gap-1 ${isVoided ? 'text-mintText font-bold' : 'hover:text-inkDeep'} py-0.5 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+                <span>${isVoided ? '復原' : '撤銷'}</span>
+              </button>
+            </div>
+          </article>
+
+          <!-- 卡片右下角外部專屬頭像 (Benson 咖波藍貓咪 / 佩筠 酷洛米紫兔耳) -->
+          <div class="shrink-0 mb-0.5" title="${tx.payer} 付款">${avatarSvg}</div>
+        </div>
+      `;
+    }
+
+    // ---------- 15. 通用 Modal 與 UI 小工具 ----------
+    const openModalStack = [];
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+      if (!openModalStack.includes(id)) {
+        openModalStack.push(id);
+        if (window.history && window.history.pushState) {
+          window.history.pushState({ modal: id }, '');
+        }
+      }
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+      const idx = openModalStack.indexOf(id);
+      if (idx >= 0) openModalStack.splice(idx, 1);
+    }
+
+    function openSettingsModal() {
+      updateIdentityUI();
+      openModal('settingsModal');
+    }
+
+    function openConfirmDialog(title, desc, onConfirm) {
+      document.getElementById('confirmActionTitle').textContent = title;
+      document.getElementById('confirmActionDesc').textContent = desc;
+      const btn = document.getElementById('confirmActionExecuteBtn');
+      btn.onclick = () => {
+        closeModal('confirmActionModal');
+        onConfirm();
+      };
+      openModal('confirmActionModal');
+    }
+
+    function setRadioValue(name, value) {
+      document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+        r.checked = (r.value === value);
+      });
+    }
+
+    function getRadioValue(name) {
+      const checked = document.querySelector(`input[name="${name}"]:checked`);
+      return checked ? checked.value : '';
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toastMsg');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.add('hidden');
+      }, 2800);
+    }
+  </script>
+</body>
+</html>
