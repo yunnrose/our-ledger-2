@@ -991,45 +991,6 @@
       copyTextFallback(firebaseAuthUid, '已複製 Firebase UID');
     }
 
-    async function migrateLocalDataToFirebase() {
-      if (!isFirebaseConnected || !fbDb) {
-        showToast('請先完成 Firebase 連線及 UID 白名單設定');
-        return;
-      }
-      const localTransactions = ledgerState.transactions || {};
-      const localLogs = ledgerState.logs || {};
-      if (Object.keys(localTransactions).length === 0) {
-        showToast('目前沒有可匯入的本機交易資料');
-        return;
-      }
-      openConfirmDialog(
-        '確認匯入本機舊資料？',
-        '系統會再次確認雲端 transactions 與 logs 都是空的；若雲端已有資料，將取消匯入，不會覆蓋雲端帳本。',
-        async () => {
-          try {
-            const snapshot = await fbDb.ref().once('value');
-            const cloud = snapshot.val() || {};
-            if ((cloud.transactions && Object.keys(cloud.transactions).length) ||
-                (cloud.logs && Object.keys(cloud.logs).length)) {
-              showToast('雲端已存在資料，為避免覆蓋，已取消匯入');
-              return;
-            }
-            await fbDb.ref().update({
-              transactions: localTransactions,
-              logs: localLogs
-            });
-            localMigrationRequired = false;
-            const migrateBtn = document.getElementById('migrateLocalDataBtn');
-            if (migrateBtn) migrateBtn.classList.add('hidden');
-            showToast('本機舊資料已成功匯入 Firebase');
-          } catch (err) {
-            showToast('匯入失敗：' + (err.message || '請檢查資料庫規則'));
-          }
-        },
-        '確認匯入'
-      );
-    }
-
     function writeTransactionToStore(txObj, logObj) {
       if (!isFirebaseConnected || !fbDb) {
         showToast('雲端尚未連線，請確認網路及 Firebase 權限；本次操作未儲存');
