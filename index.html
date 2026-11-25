@@ -984,9 +984,12 @@
 
           fbDb.ref('logs').on('value', snap => {
             const cloudLogs = snap.val();
-            // 雲端 logs 為空時保留本機舊稽核紀錄，等待使用者明確執行遷移。
             if (cloudLogs && Object.keys(cloudLogs).length > 0) {
               ledgerState.logs = cloudLogs;
+              saveLocalData();
+              refreshAllViews();
+            } else if (!localMigrationRequired) {
+              ledgerState.logs = {};
               saveLocalData();
               refreshAllViews();
             }
