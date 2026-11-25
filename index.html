@@ -612,6 +612,12 @@
           <p class="text-[11px] text-inkMuted leading-relaxed">貼上現有 <code class="bg-white px-1 rounded">our-ledger-2</code> 的 <code class="bg-white px-1 rounded">firebaseConfig</code> JSON（自動連接既有的 <code class="bg-white px-1 rounded">transactions/</code> 與 <code class="bg-white px-1 rounded">logs/</code> 路徑）：</p>
           <textarea id="firebaseConfigInput" rows="4" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"https://...","projectId":"..."}' class="w-full p-2.5 rounded-xl bg-white border border-cardBorder font-mono text-[11px]"></textarea>
           <button type="button" onclick="saveFirebaseConfig()" class="w-full touch-target rounded-xl bg-capooBlue text-white font-bold">儲存並連線 Firebase</button>
+          <div class="rounded-xl bg-white border border-cardBorder p-2.5 space-y-1">
+            <p class="font-bold text-inkDeep">匿名登入 UID（設定資料庫白名單用）</p>
+            <p id="firebaseUidText" class="font-mono text-[10px] break-all text-inkMuted">尚未登入 Firebase</p>
+            <button type="button" onclick="copyFirebaseUid()" class="text-capooDark font-bold text-[11px] underline">複製目前 UID</button>
+          </div>
+          <p class="text-[10px] leading-relaxed text-amberText">安全提醒：匿名登入不代表只有兩人能使用。請將兩人的 UID 加入資料庫規則白名單；不要使用「所有已登入使用者皆可讀寫」作為正式私人帳本規則。</p>
         </div>
       </div>
     </div>
@@ -870,7 +876,8 @@
           }
         } catch (e) {}
       }
-      ledgerState = initScreenshotDemoData();
+      // 正式環境不載入示範帳務，避免範例資料混入真實帳本。
+      ledgerState = { transactions: {}, logs: {} };
       saveLocalData();
     }
 
@@ -893,38 +900,87 @@
       });
     }
 
+    let firebaseAuthUid = '';
+    let firebaseConfigured = false;
+    let firebaseListenersAttached = false;
+
+    function setFirebaseStatus(message, connected = false, warning = false) {
+      const badge = document.getElementById('fbBadge');
+      const status = document.getElementById('syncStatusText');
+      if (badge) {
+        badge.textContent = connected ? '已連線雲端' : (warning ? '連線受阻' : '尚未連線');
+        badge.className = connected
+          ? 'px-2 py-0.5 rounded-full bg-mintBg text-mintText text-[10px] font-bold'
+          : 'px-2 py-0.5 rounded-full bg-amberBg text-amberText text-[10px] font-bold';
+      }
+      if (status) status.textContent = message;
+      isFirebaseConnected = connected;
+    }
+
+    function updateFirebaseUidUI() {
+      const el = document.getElementById('firebaseUidText');
+      if (el) el.textContent = firebaseAuthUid || '尚未登入 Firebase';
+    }
+
     async function initFirebaseFromSavedConfig() {
       const rawCfg = safeStorage.get(STORAGE_KEY_FB);
-      if (!rawCfg) return;
-      document.getElementById('firebaseConfigInput').value = rawCfg;
+      if (!rawCfg) {
+        firebaseConfigured = false;
+        setFirebaseStatus('本機模式（尚未設定 Firebase）');
+        return;
+      }
+      firebaseConfigured = true;
+      const configInput = document.getElementById('firebaseConfigInput');
+      if (configInput) configInput.value = rawCfg;
+
       try {
         const cfg = JSON.parse(rawCfg);
-        if (!cfg.databaseURL) return;
+        if (!cfg.apiKey || !cfg.authDomain || !cfg.databaseURL || !cfg.projectId) {
+          throw new Error('firebaseConfig 缺少必要欄位');
+        }
+        setFirebaseStatus('正在連線 Firebase…');
         await loadScriptAsync('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
         await loadScriptAsync('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js');
         await loadScriptAsync('https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js');
+
         if (!window.firebase.apps.length) {
           window.firebase.initializeApp(cfg);
         }
-        await window.firebase.auth().signInAnonymously();
-        fbDb = window.firebase.database();
-        isFirebaseConnected = true;
-        document.getElementById('fbBadge').textContent = '已連線雲端';
-        document.getElementById('fbBadge').className = 'px-2 py-0.5 rounded-full bg-mintBg text-mintText text-[10px] font-bold';
-        document.getElementById('syncStatusText').textContent = '已同步 · 雲端連線';
+        const auth = window.firebase.auth();
+        await auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+        const credential = await auth.signInAnonymously();
+        firebaseAuthUid = credential.user.uid;
+        updateFirebaseUidUI();
 
-        fbDb.ref('transactions').on('value', snap => {
-          ledgerState.transactions = snap.val() || {};
-          saveLocalData();
-          refreshAllViews();
-        });
-        fbDb.ref('logs').on('value', snap => {
-          ledgerState.logs = snap.val() || {};
-          saveLocalData();
-          refreshAllViews();
-        });
+        fbDb = window.firebase.database();
+        setFirebaseStatus('匿名登入成功，正在讀取雲端資料…');
+
+        if (!firebaseListenersAttached) {
+          firebaseListenersAttached = true;
+          fbDb.ref('transactions').on('value', snap => {
+            ledgerState.transactions = snap.val() || {};
+            saveLocalData();
+            refreshAllViews();
+            setFirebaseStatus('已同步 · 雲端連線', true);
+          }, err => {
+            setFirebaseStatus('資料讀取遭拒：請檢查 UID 白名單規則', false, true);
+            showToast('Firebase 讀取失敗：' + (err.message || '權限不足'));
+          });
+
+          fbDb.ref('logs').on('value', snap => {
+            ledgerState.logs = snap.val() || {};
+            saveLocalData();
+            refreshAllViews();
+          }, err => {
+            setFirebaseStatus('稽核紀錄讀取遭拒：請檢查資料庫規則', false, true);
+            showToast('Firebase logs 讀取失敗：' + (err.message || '權限不足'));
+          });
+        }
       } catch (err) {
-        document.getElementById('syncStatusText').textContent = '本機模式（雲端未連線）';
+        firebaseAuthUid = '';
+        updateFirebaseUidUI();
+        setFirebaseStatus('Firebase 連線失敗：' + (err.message || '請檢查設定'), false, true);
+        console.error('Firebase initialization failed:', err);
       }
     }
 
@@ -935,13 +991,25 @@
         return;
       }
       try {
-        JSON.parse(val);
-        safeStorage.set(STORAGE_KEY_FB, val);
-        showToast('設定已儲存，正在嘗試連線 Firebase...');
+        const cfg = JSON.parse(val);
+        if (!cfg.apiKey || !cfg.authDomain || !cfg.databaseURL || !cfg.projectId) {
+          showToast('firebaseConfig 缺少 apiKey、authDomain、databaseURL 或 projectId');
+          return;
+        }
+        safeStorage.set(STORAGE_KEY_FB, JSON.stringify(cfg));
+        showToast('設定已儲存，正在嘗試匿名登入…');
         initFirebaseFromSavedConfig();
       } catch (e) {
         showToast('JSON 格式錯誤，請檢查引號與大括號');
       }
+    }
+
+    function copyFirebaseUid() {
+      if (!firebaseAuthUid) {
+        showToast('目前尚未取得 Firebase UID');
+        return;
+      }
+      copyTextFallback(firebaseAuthUid, '已複製 Firebase UID');
     }
 
     function writeTransactionToStore(txObj, logObj) {
@@ -949,7 +1017,12 @@
         const updates = {};
         updates[`transactions/${txObj.id}`] = txObj;
         if (logObj) updates[`logs/${logObj.id}`] = logObj;
-        fbDb.ref().update(updates).catch(() => showToast('雲端寫入失敗，請檢查網路'));
+        fbDb.ref().update(updates).catch(err => {
+          showToast('雲端寫入失敗：' + (err.message || '請檢查資料庫規則'));
+          setFirebaseStatus('雲端寫入失敗，資料尚未確認同步', false, true);
+        });
+      } else if (firebaseConfigured) {
+        showToast('Firebase 尚未連線，為避免產生不同步資料，本次操作未儲存');
       } else {
         ledgerState.transactions[txObj.id] = txObj;
         if (logObj) ledgerState.logs[logObj.id] = logObj;
@@ -963,7 +1036,12 @@
         const updates = {};
         updates[`transactions/${txId}`] = null;
         if (logObj) updates[`logs/${logObj.id}`] = logObj;
-        fbDb.ref().update(updates).catch(() => showToast('雲端刪除失敗'));
+        fbDb.ref().update(updates).catch(err => {
+          showToast('雲端刪除失敗：' + (err.message || '請檢查資料庫規則'));
+          setFirebaseStatus('雲端刪除失敗，資料尚未確認同步', false, true);
+        });
+      } else if (firebaseConfigured) {
+        showToast('Firebase 尚未連線，為避免產生不同步資料，本次操作未執行');
       } else {
         delete ledgerState.transactions[txId];
         if (logObj) ledgerState.logs[logObj.id] = logObj;
