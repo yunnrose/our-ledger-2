@@ -604,11 +604,6 @@
             </label>
           </div>
         </div>
-        <div class="bg-creamBg p-3.5 rounded-2xl border border-cardBorder space-y-2">
-          <div class="flex items-center justify-between">
-            <p class="font-bold text-inkDeep">Firebase Realtime Database 設定</p>
-            <span id="fbBadge" class="px-2 py-0.5 rounded-full bg-amberBg text-amberText text-[10px] font-bold">本機演示模式</span>
-          </div>
           <p class="text-[11px] text-inkMuted leading-relaxed">貼上現有 <code class="bg-white px-1 rounded">our-ledger-2</code> 的 <code class="bg-white px-1 rounded">firebaseConfig</code> JSON（自動連接既有的 <code class="bg-white px-1 rounded">transactions/</code> 與 <code class="bg-white px-1 rounded">logs/</code> 路徑）：</p>
           <textarea id="firebaseConfigInput" rows="4" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"https://...","projectId":"..."}' class="w-full p-2.5 rounded-xl bg-white border border-cardBorder font-mono text-[11px]"></textarea>
           <button type="button" onclick="saveFirebaseConfig()" class="w-full touch-target rounded-xl bg-capooBlue text-white font-bold">儲存並連線 Firebase</button>
